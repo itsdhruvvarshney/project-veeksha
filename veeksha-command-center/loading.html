@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0b1713">
+<title>VEEKSHA — Mobile Urban Intelligence</title>
+<style>
+:root{
+  --bg:#061522;--bg2:#0b2333;--road:#2b343a;--road2:#343f45;
+  --cyan:#63d5f0;--cyan2:#d6f7ff;--teal:#40c7d0;--white:#f7fafb;
+  --muted:#8fa8b6;--amber:#e9c85c;--line:rgba(99,213,240,.24);
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--white);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden}
+.hero{height:100svh;min-height:680px;position:relative;overflow:hidden;background:#0c1512;isolation:isolate}
+.scene{position:absolute;inset:0;overflow:hidden;transition:transform 2s cubic-bezier(.2,.8,.15,1),opacity 1.5s ease}
+.scene.fade{transform:none;opacity:1}
+.sky{position:absolute;inset:0;background:
+ radial-gradient(ellipse at 52% 28%,rgba(35,91,123,.32),transparent 40%),
+ linear-gradient(#101b17 0%,#17251d 45%,#18221c 100%)}
+.city{position:absolute;inset:0;opacity:.78}
+.building{position:absolute;bottom:47%;background:linear-gradient(90deg,#16272d,#20373c,#13242a);border:1px solid rgba(160,220,230,.08)}
+.building:after{content:"";position:absolute;inset:8px;background:repeating-linear-gradient(90deg,rgba(99,196,211,.14) 0 5px,transparent 5px 16px);opacity:.7}
+.b1{left:0;width:13%;height:22%}.b2{left:14%;width:9%;height:15%}.b3{right:0;width:16%;height:25%}.b4{right:17%;width:8%;height:18%}.b5{left:27%;width:7%;height:12%}
+.ground{position:absolute;left:0;right:0;bottom:0;height:55%;background:
+ radial-gradient(ellipse at 15% 35%,#20352f 0 4%,transparent 4.2%),
+ radial-gradient(ellipse at 83% 65%,#1e342f 0 5%,transparent 5.2%),
+ #17231f}
+.road{position:absolute;left:-2%;right:-2%;bottom:8%;height:48%;background:
+ linear-gradient(90deg,rgba(255,255,255,.03),transparent 8% 92%,rgba(255,255,255,.03)),
+ linear-gradient(#343c40,#252d32);border-top:3px solid #677176;border-bottom:3px solid #596267;box-shadow:0 -25px 60px rgba(0,0,0,.28),0 25px 60px rgba(0,0,0,.45)}
+/* Straight, horizontal road — no artificial tilt */
+.road:before{content:"";position:absolute;inset:0;background:
+ repeating-linear-gradient(90deg,transparent 0 80px,rgba(255,255,255,.018) 80px 81px),
+ linear-gradient(180deg,transparent 0 47%,rgba(0,0,0,.14) 48% 52%,transparent 53%)}
+.lane{position:absolute;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,#dfe6e7 0 58px,transparent 58px 115px);opacity:.48}
+.l1{top:25%}.l2{top:75%}.divider{position:absolute;left:50%;top:0;bottom:0;width:4px;transform:translateX(-50%);background:repeating-linear-gradient(0deg,rgba(232,206,92,.95) 0 23px,transparent 23px 47px);opacity:.75}
+.sidewalk{position:absolute;left:0;right:0;height:9%;background:repeating-linear-gradient(90deg,#515a5e 0 42px,#444d51 42px 84px)}
+.sidewalk.top{top:-9%}.sidewalk.bottom{bottom:-9%}
+.barrier{position:absolute;left:0;right:0;height:12px;background:repeating-linear-gradient(90deg,#818b8e 0 58px,#515b5f 58px 72px);box-shadow:0 3px 9px #0008}
+.barrier.top{top:-1%}.barrier.bottom{bottom:-1%}
+.tree{position:absolute;width:65px;height:65px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#55766d 0 8%,transparent 9%),radial-gradient(circle at 62% 57%,#31564d 0 35%,transparent 36%),#27483f;box-shadow:0 5px 15px #0007}
+.tree:after{content:"";position:absolute;width:7px;height:26px;background:#4a4438;left:29px;top:55px}
+.t1{left:5%;top:16%}.t2{right:7%;top:18%;transform:scale(.8)}.t3{left:18%;bottom:12%;transform:scale(.65)}.t4{right:22%;bottom:12%;transform:scale(.7)}
+.light{position:absolute;width:4px;height:95px;background:#707b7f}.light:before{content:"";position:absolute;top:-5px;left:-14px;width:31px;height:4px;background:#899397}.light:after{content:"";position:absolute;top:-11px;left:4px;width:8px;height:8px;border-radius:50%;background:#d7f7f8;box-shadow:0 0 12px #b7f2f555}
+.li1{left:24%;top:10%}.li2{right:25%;top:10%}.li3{left:31%;bottom:5%}.li4{right:13%;bottom:6%}
+.sign{display:none}
+.traffic-signal{position:absolute;z-index:9;left:10%;top:24%;width:18px;height:52px;border-radius:9px;background:#111b20;border:1px solid #637278;box-shadow:0 5px 12px #0008}
+.traffic-signal:before{content:"";position:absolute;left:5px;top:6px;width:8px;height:8px;border-radius:50%;background:#df594f;box-shadow:0 14px #e4bd4f,0 28px #55d5a5}
+.traffic-signal:after{content:"";position:absolute;width:3px;height:38px;left:7px;top:51px;background:#59656a}
+.bus-stop{position:absolute;z-index:8;right:11%;top:21%;width:42px;height:24px;border-radius:5px;background:#153844;border:1px solid #4f8189;box-shadow:0 4px 10px #0007}
+.bus-stop:before{content:"BUS";display:grid;place-items:center;height:100%;font-size:7px;letter-spacing:.12em;color:#b9edf0;font-weight:800}
+.crosswalk{position:absolute;z-index:5;left:0;right:0;top:73%;height:42px;opacity:.28;background:repeating-linear-gradient(90deg,transparent 0 24px,#eef5f4 24px 35px)}
+.curbstone{position:absolute;z-index:4;left:0;right:0;top:8%;height:7px;background:repeating-linear-gradient(90deg,#687478 0 38px,#4c585c 38px 76px)}
+
+.car{position:absolute;width:37px;height:67px;border-radius:10px 10px 7px 7px;background:linear-gradient(90deg,#1b2328,#68757a,#20292e);border:1px solid #d8e2e522;box-shadow:0 8px 14px #0008}
+.car:before{content:"";position:absolute;left:6px;right:6px;top:10px;height:21px;border-radius:6px;background:#2e4d5b;border:1px solid #b8d9df33}.car:after{content:"";position:absolute;left:6px;right:6px;bottom:8px;height:4px;background:#cc5548;box-shadow:0 -40px #d9e4e5}
+.c1{left:31%;top:30%}.c2{right:31%;top:58%;transform:scale(.7)}.c3{left:70%;top:31%;transform:scale(.55)}
+.bike{position:absolute;width:29px;height:60px}.bike:before,.bike:after{content:"";position:absolute;bottom:0;width:12px;height:12px;border:2px solid #a9b7bb;border-radius:50%}.bike:before{left:0}.bike:after{right:0}.bike span{position:absolute;width:3px;height:37px;left:13px;bottom:8px;background:#77858a;transform:rotate(10deg)}.bk1{left:59%;top:63%}.bk2{right:18%;top:31%;transform:scale(.6)}
+.pothole{position:absolute;z-index:12;left:59%;top:61%;width:112px;height:58px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(ellipse at 50% 48%,#05080a 0 31%,#12181b 32% 54%,#566066 55% 63%,transparent 65%);filter:drop-shadow(0 8px 9px #0009)}
+.pothole:after{content:"";position:absolute;inset:9px 17px;border-radius:50%;border:2px solid #000b}
+.bus-wrap{position:absolute;z-index:25;width:clamp(185px,22vw,330px);left:-28%;top:50%;opacity:0;transform:translateY(-50%);will-change:left,transform}
+.bus-wrap.active{opacity:1}
+.bus-wrap.stopping{filter:drop-shadow(0 13px 13px #0009)}
+.bus-svg{display:block;width:100%;filter:drop-shadow(0 13px 13px #000b)}
+.sensor{position:absolute;z-index:-1;inset:-105% -78%;opacity:0;transition:opacity .8s}
+.sensor.on{opacity:.42}
+.sensor .fan{position:absolute;inset:15%;border-radius:50%;background:conic-gradient(from 265deg,transparent 0 25deg,rgba(54,220,255,.16) 25deg 65deg,transparent 65deg 360deg);animation:scan 2.8s linear infinite}
+.sensor .arc{position:absolute;left:50%;bottom:50%;width:75%;height:75%;transform:translate(-50%,0);border:1px solid rgba(54,220,255,.4);border-bottom:0;border-radius:50% 50% 0 0}
+.sensor .beam{position:absolute;left:50%;bottom:50%;width:48%;height:1px;transform-origin:left;background:linear-gradient(90deg,#b8d96bb8,transparent);animation:beam 2.8s linear infinite}
+.camera-label{position:absolute;padding:5px 8px;background:#0d1c16dd;border:1px solid #4eddfb55;color:#b8eff8;font-size:8px;letter-spacing:.15em;white-space:nowrap}
+.frontcam{left:73%;top:17%}.path-label{position:absolute;left:50%;top:53%;transform:translate(-50%,0);color:#75dbea;font-size:8px;letter-spacing:.18em;background:#0d1c16aa;padding:5px 9px;border:1px solid #42d9f633;opacity:0;transition:opacity .7s}
+.path-label.on{opacity:1}
+.cv{position:absolute;z-index:30;border:1px solid #b8d96b99;opacity:0;transition:opacity .7s}.cv:before,.cv:after{content:"";position:absolute;width:11px;height:11px;border-color:#b8d96b;border-style:solid}.cv:before{left:-1px;top:-1px;border-width:2px 0 0 2px}.cv:after{right:-1px;bottom:-1px;border-width:0 2px 2px 0}.cv span{position:absolute;left:-1px;top:-22px;padding:4px 6px;background:#0d1c16ee;color:#c9f5fb;font-size:8px;letter-spacing:.12em;white-space:nowrap}
+.cv.vehicle,.cv.bikebox{display:none}
+.focus{position:absolute;z-index:34;left:58%;top:61%;width:154px;height:88px;transform:translate(-50%,-50%);border:1px solid #69d9f2;opacity:0;transition:opacity .55s}
+.focus.on{opacity:1}.focus i{position:absolute;width:17px;height:17px;border-color:#69d9f2;border-style:solid}.tl{left:-1px;top:-1px;border-width:2px 0 0 2px}.tr{right:-1px;top:-1px;border-width:2px 2px 0 0}.bl{left:-1px;bottom:-1px;border-width:0 0 2px 2px}.br{right:-1px;bottom:-1px;border-width:0 2px 2px 0}
+.focus-label{position:absolute;left:-1px;top:-36px;background:#081725f2;border:1px solid #69d9f255;padding:7px 10px;min-width:168px}.focus-label b{display:block;font-size:9px;letter-spacing:.14em}.focus-label small{display:block;color:#9bc4d1;margin-top:3px;font-size:8px}.scanline{display:none}
+.data{display:none}
+.data-label{display:none}
+
+.topbar{position:absolute;z-index:60;top:0;left:0;right:0;padding:22px 4.5vw;display:flex;justify-content:space-between;align-items:center}.mini-brand{font-weight:950;letter-spacing:.17em;font-size:13px}.mini-brand span{color:var(--cyan)}.status{font-size:8px;letter-spacing:.16em;color:#c5d6dd;display:flex;gap:8px;align-items:center}.dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px rgba(99,213,240,.7)}
+.intro,.brand-reveal,.features{display:none}
+.kicker{font-size:9px;font-weight:800;letter-spacing:.19em;color:#8ad9ea}
+.final{position:absolute;z-index:70;inset:0;display:grid;place-items:center;background:linear-gradient(90deg,rgba(4,13,21,.88) 0%,rgba(4,13,21,.62) 40%,rgba(4,13,21,.18) 72%,rgba(4,13,21,.05) 100%);opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .6s ease,transform .7s cubic-bezier(.2,.8,.15,1)}
+.final.on{opacity:1;transform:translateY(0);pointer-events:auto}
+.final-content{width:min(1000px,88vw);text-align:left;transform:none!important;margin-left:7vw;margin-top:-1vh}
+.final-kicker{font-size:10px;letter-spacing:.19em;color:#7fe0ef;margin-bottom:18px;font-weight:800}
+.final-logo{font-size:clamp(72px,10.5vw,148px);font-weight:950;letter-spacing:-.075em;line-height:.84;background:linear-gradient(100deg,#f7fbfc 15%,#ccecf4 52%,#58cde8 88%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 40px rgba(99,213,240,.10)}
+.final-logo:after{content:"";display:block;width:min(360px,34vw);height:2px;margin:18px 0 0;background:linear-gradient(90deg,var(--cyan),rgba(99,213,240,0))}
+.final-subtitle{margin:17px 0 0;max-width:720px;color:#d9f2f8;font-size:clamp(15px,1.55vw,22px);font-weight:780;letter-spacing:.035em;line-height:1.4;text-transform:none}
+.final-desc{margin:12px 0 0;max-width:640px;color:#93adbb;font-size:12px;letter-spacing:.025em;line-height:1.55}
+.hero:after{content:"";position:absolute;inset:0;z-index:65;pointer-events:none;background:linear-gradient(180deg,rgba(4,15,23,.06),rgba(4,15,23,.14));transition:background .7s ease}.hero:has(.final.on):after{background:linear-gradient(180deg,rgba(4,15,23,.13),rgba(4,15,23,.20))}
+.scroll{display:none!important}
+.explore{display:none}
+@media(max-width:900px){.final-content{margin-left:0;width:86vw}.final-logo{font-size:17vw}.final-subtitle{max-width:620px}}
+@media(max-width:600px){.topbar{padding:16px 6vw}.status{font-size:6px}.final{place-items:end center;padding-bottom:9vh;background:linear-gradient(180deg,rgba(4,13,21,.08) 20%,rgba(4,13,21,.72) 62%,rgba(4,13,21,.93) 100%)}.final-content{width:86vw;margin:0;text-align:left}.final-kicker{font-size:7px;margin-bottom:10px}.final-logo{font-size:22vw}.final-logo:after{width:44vw;margin:13px 0 0}.final-subtitle{font-size:10px;line-height:1.5;margin-top:12px}.final-desc{font-size:8px;margin-top:7px}.focus-label{top:-34px}.focus{width:132px;height:76px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.brand-reveal{opacity:1!important;transform:none!important}.scroll{display:none!important}}
+</style>
+</head>
+<body>
+<main>
+<section class="hero" id="hero">
+  <div class="scene" id="scene">
+    <div class="sky"></div>
+    <div class="city">
+      <i class="building b1"></i><i class="building b2"></i><i class="building b3"></i><i class="building b4"></i><i class="building b5"></i>
+    </div>
+    <div class="ground"></div>
+    <div class="road">
+      <i class="lane l1"></i><i class="lane l2"></i><i class="divider"></i>
+      <i class="sidewalk top"></i><i class="sidewalk bottom"></i><i class="barrier top"></i><i class="barrier bottom"></i>
+    </div>
+    <i class="tree t1"></i><i class="tree t2"></i><i class="tree t3"></i><i class="tree t4"></i>
+    <i class="light li1"></i><i class="light li2"></i><i class="light li3"></i><i class="light li4"></i>
+    <i class="sign sg1"></i><i class="sign sg2"></i>
+    <i class="traffic-signal"></i><i class="bus-stop"></i><i class="crosswalk"></i><i class="curbstone"></i>
+    <i class="car c1"></i><i class="car c2"></i><i class="car c3"></i>
+    <i class="bike bk1"><span></span></i><i class="bike bk2"><span></span></i>
+
+    <div class="pothole" id="pothole"></div>
+
+    <div class="cv vehicle"><span>VEHICLE</span></div>
+    <div class="cv bikebox"><span>TWO-WHEELER</span></div>
+
+    <div class="bus-wrap" id="bus">
+      <div class="sensor" id="sensor">
+        <div class="fan"></div><div class="arc"></div><div class="beam"></div>
+        <div class="camera-label frontcam">FRONT CAMERA</div>
+      </div>
+
+      <!-- Modern public-transport bus: long body, transit livery, passenger doors -->
+      <svg class="bus-svg" viewBox="0 0 640 240" role="img" aria-label="VEEKSHA public transport city bus">
+  <defs>
+    <linearGradient id="body" x1="0" x2="1"><stop stop-color="#eaf2f6"/><stop offset=".56" stop-color="#ffffff"/><stop offset="1" stop-color="#d9e4e8"/></linearGradient>
+    <linearGradient id="blue" x1="0" x2="1"><stop stop-color="#0b6c91"/><stop offset=".55" stop-color="#1fa5c1"/><stop offset="1" stop-color="#4ac8d5"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#0b2739"/><stop offset="1" stop-color="#3d6677"/></linearGradient>
+  </defs>
+  <ellipse cx="314" cy="213" rx="246" ry="15" fill="#06121a" opacity=".36"/>
+  <path d="M44 76 Q49 43 84 31 H518 Q558 34 582 67 L592 169 Q594 193 568 199 H42 Q20 193 23 167 Z" fill="url(#body)" stroke="#c0d2da" stroke-width="2"/>
+  <path d="M47 76 Q51 43 86 34 H516 Q548 35 572 67 L578 79 H45 Z" fill="url(#blue)"/>
+  <path d="M44 82 H578 V93 H44 Z" fill="#074f76"/>
+  <path d="M44 93 H578 V98 H44 Z" fill="#65d6df"/>
+  <rect x="477" y="45" width="72" height="22" rx="5" fill="#0a1f2c"/>
+  <text x="513" y="60" text-anchor="middle" fill="#d8f8fb" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="800" letter-spacing="1">A17  CITY</text>
+  <g fill="url(#glass)" stroke="#bed1d7" stroke-width="1.5">
+    <rect x="62" y="106" width="71" height="49" rx="7"/><rect x="143" y="106" width="71" height="49" rx="7"/><rect x="224" y="106" width="71" height="49" rx="7"/><rect x="305" y="106" width="71" height="49" rx="7"/><rect x="386" y="106" width="71" height="49" rx="7"/>
+  </g>
+  <g stroke="#e6f6fa" stroke-opacity=".22" stroke-width="3"><path d="M70 149 L99 113"/><path d="M151 149 L180 113"/><path d="M232 149 L261 113"/><path d="M313 149 L342 113"/><path d="M394 149 L423 113"/></g>
+  <rect x="462" y="104" width="62" height="55" rx="6" fill="#deeaed" stroke="#b3c8d0"/>
+  <path d="M493 106 V157 M463 132 H523" stroke="#8ba2ac" stroke-width="2"/>
+  <path d="M30 105 H59 V160 Q55 171 34 173 H30 Z" fill="#dfeaec" stroke="#b7cbd1"/>
+  <path d="M44 107 V168" stroke="#91aab4" stroke-width="2"/>
+  <text x="61" y="181" fill="#0a789d" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="950" letter-spacing="2">VEEKSHA</text>
+  <text x="62" y="193" fill="#5c7380" font-family="Inter,Arial,sans-serif" font-size="7" font-weight="800" letter-spacing="1.25">PUBLIC TRANSPORT · URBAN AI</text>
+  <circle cx="563" cy="170" r="8" fill="#dfeef2"/><circle cx="29" cy="170" r="7" fill="#63d5f0"/>
+  <g><circle cx="126" cy="198" r="28" fill="#102230"/><circle cx="126" cy="198" r="16" fill="#eef5f7"/><circle cx="126" cy="198" r="6" fill="#718e9b"/><circle cx="470" cy="198" r="28" fill="#102230"/><circle cx="470" cy="198" r="16" fill="#eef5f7"/><circle cx="470" cy="198" r="6" fill="#718e9b"/></g>
+  <rect x="279" y="10" width="58" height="23" rx="10" fill="#0a2638"/><circle cx="308" cy="21" r="8" fill="#58d6df"/><circle cx="308" cy="21" r="3" fill="#efffff"/>
+</svg>
+    </div>
+
+    </div>
+
+    <div class="path-label" id="pathLabel">FORWARD PATH ANALYSIS</div>
+
+    <div class="focus" id="focus">
+      <i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
+      <div class="focus-label"><b>POTHOLE DETECTED</b><small>Confidence: 94%</small></div>
+      <div class="scanline"></div>
+    </div>
+
+    <div class="data" id="data"></div>
+
+  </div>
+
+  <div class="topbar">
+    <div class="mini-brand">VEEK<span>S</span>HA</div>
+    <div class="status"><i class="dot"></i> LIVE URBAN OBSERVATION &nbsp; · &nbsp; EDGE AI</div>
+  </div>
+
+  <div class="intro" id="intro">
+    <div class="kicker">PUBLIC TRANSPORT · EDGE AI</div>
+    <h1>VEEKSHA<br><span>Urban intelligence, in motion.</span></h1>
+    <p>AI-powered observation built into the public transport fleet.</p>
+  </div>
+
+  <div class="brand-reveal" id="brand">
+    <div>
+      <div class="brand-word">VEEKSHA</div>
+      <div class="brand-sub">AN AI-POWERED MOBILE URBAN INTELLIGENCE PLATFORM USING PUBLIC TRANSPORT FLEET</div>
+      <div class="brand-note">Using Public Transport Fleet</div>
+    </div>
+  </div>
+
+  <section class="final" id="final">
+    <div class="final-content">
+      <div class="final-kicker">PUBLIC TRANSPORT · EDGE AI</div>
+      <div class="final-logo">VEEKSHA</div>
+      <div class="final-subtitle">AN AI-POWERED MOBILE URBAN INTELLIGENCE PLATFORM USING PUBLIC TRANSPORT FLEET</div>
+      <div class="final-desc">Turning everyday public transport into a continuously moving urban sensing layer for city intelligence.</div>
+    </div>
+  </section>
+
+  <div class="scroll">SCROLL TO EXPLORE<i></i></div>
+</section>
+
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const bus=document.getElementById("bus"), focus=document.getElementById("focus"), pathLabel=document.getElementById("pathLabel"), final=document.getElementById("final");
+  
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    bus.classList.add("active","stopping"); bus.style.left="34%"; focus.classList.add("on"); setTimeout(()=>final.classList.add("on"),300); 
+    return;
+  }
+  
+  const easeOut=t=>1-Math.pow(1-t,3);
+  const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+  let start=null;
+  
+  function travel(now){
+    if(start===null) start=now;
+    const e=now-start, travelDuration=1450, brakeDuration=280;
+    bus.classList.add("active");
+    let left;
+    if(e<travelDuration){ left=-26 + 66*easeOut(e/travelDuration); }
+    else { const p=Math.min(1,(e-travelDuration)/brakeDuration); left=34 + 0.6*easeInOut(p); if(p>=1) bus.classList.add("stopping"); }
+    bus.style.left=left+"%";
+    if(e<travelDuration+brakeDuration) requestAnimationFrame(travel);
+  }
+  
+  addEventListener("load",()=>{
+    requestAnimationFrame(travel);
+    setTimeout(()=>pathLabel.classList.add("on"),760);
+    setTimeout(()=>{focus.classList.add("on");pathLabel.classList.remove("on");},1820);
+    setTimeout(()=>{focus.classList.remove("on");final.classList.add("on");},2420);
+    
+    // ==== NEW ROUTING LOGIC (Redirects after animation) ====
+    setTimeout(() => {
+      // Check which role logged in
+      const role = localStorage.getItem('veeksha_role');
+      if (role === 'admin') {
+        window.location.href = 'veeksha-dashboard.html';
+      } else if (role === 'edge') {
+        window.location.href = 'mobile-edge.html';
+      } else {
+        window.location.href = 'index.html'; // fallback
+      }
+    }, 4500); // 4.5 seconds total for the transition
+
+  },{once:true});
+})();
+</script>
+</body>
+</html>

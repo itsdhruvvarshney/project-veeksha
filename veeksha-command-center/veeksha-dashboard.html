@@ -1,0 +1,5232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VEEKSHA — Urban Intelligence Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <style>
+    :root {
+      --bg-1: #eaf4fd;
+      --bg-2: #dce9fb;
+      --bg-3: #f3f8fe;
+      --ink: #0b1b33;
+      --ink-soft: #33465f;
+      --ink-mute: #647389;
+      --glass: rgba(255, 255, 255, .58);
+      --glass-strong: rgba(255, 255, 255, .82);
+      --glass-border: rgba(255, 255, 255, .9);
+      --line: rgba(15, 45, 90, .09);
+      --cyan: #06b6d4;
+      --blue: #2f6fed;
+      --violet: #6d5bd0;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --green: #12b981;
+      --shadow-lg: 0 24px 60px -22px rgba(21, 58, 102, .28);
+      --shadow-sm: 0 6px 18px -8px rgba(21, 58, 102, .18);
+    }
+
+    body.theme-dark {
+      --bg-1: #0a0f1c;
+      --bg-2: #0d1526;
+      --bg-3: #0b1220;
+      --ink: #e9f1ff;
+      --ink-soft: #b7c8e3;
+      --ink-mute: #7f92b3;
+      --glass: rgba(22, 32, 52, .58);
+      --glass-strong: rgba(20, 29, 48, .86);
+      --glass-border: rgba(255, 255, 255, .09);
+      --line: rgba(255, 255, 255, .08);
+      --shadow-lg: 0 24px 60px -22px rgba(0, 0, 0, .55);
+      --shadow-sm: 0 6px 18px -8px rgba(0, 0, 0, .4);
+    }
+
+    body.theme-dark .kpi,
+    body.theme-dark .fleet-row,
+    body.theme-dark .subpanel,
+    body.theme-dark .data-row,
+    body.theme-dark .fleet-card,
+    body.theme-dark .feed-item,
+    body.theme-dark .vstat,
+    body.theme-dark .ba-panel,
+    body.theme-dark .pq-row {
+      background: rgba(255, 255, 255, .04);
+      border-color: rgba(255, 255, 255, .08);
+    }
+
+    body.theme-dark .stat-box {
+      background: rgba(255, 255, 255, .05);
+      border-color: rgba(255, 255, 255, .09);
+    }
+
+    body.theme-dark .map-stage {
+      background: radial-gradient(ellipse at 50% 20%, #17202f 0%, #0d1420 60%, #090d16 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1100px 620px at 14% -8%, #ffffff 0%, transparent 60%),
+        radial-gradient(900px 560px at 108% 8%, #d8ecff 0%, transparent 55%),
+        linear-gradient(160deg, var(--bg-1), var(--bg-2) 55%, var(--bg-3));
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    #bg-particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .55;
+    }
+
+    ::selection {
+      background: rgba(47, 111, 237, .25);
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(47, 111, 237, .25);
+      border-radius: 8px;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1580px;
+      margin: 0 auto;
+      padding: 22px 28px 40px;
+    }
+
+    /* ---------- TOPBAR ---------- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 22px;
+      border-radius: 18px;
+      background: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      opacity: 0;
+      transform: translateY(-14px);
+      animation: dropIn .7s cubic-bezier(.2, .8, .2, 1) .05s forwards;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      position: relative;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      box-shadow: 0 8px 20px -6px rgba(47, 111, 237, .55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-mark svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .brand-text h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      margin: 0;
+      background: linear-gradient(90deg, var(--ink), var(--blue) 130%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .brand-text p {
+      margin: 1px 0 0;
+      font-size: 11.5px;
+      color: var(--ink-mute);
+      letter-spacing: .4px;
+      font-weight: 600;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .live-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(18, 185, 129, .1);
+      border: 1px solid rgba(18, 185, 129, .28);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #0a7a54;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .2s;
+    }
+
+    .live-pill:hover {
+      transform: translateY(-1px);
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(18, 185, 129, .6);
+      animation: pulseDot 1.8s infinite;
+    }
+
+    .clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      background: rgba(47, 111, 237, .08);
+      border: 1px solid rgba(47, 111, 237, .18);
+      padding: 8px 12px;
+      border-radius: 12px;
+      min-width: 150px;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #ffd39b, #f59e0b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Sora';
+      font-weight: 700;
+      color: #7a3d02;
+      font-size: 13px;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+    }
+
+    /* ---------- TOPBAR: CENTER CLUSTER ---------- */
+    .top-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 0 10px;
+    }
+
+    .tc-city {
+      font-family: 'Sora', sans-serif;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: var(--ink);
+    }
+
+    .tc-city span {
+      color: var(--ink-mute);
+      font-weight: 600;
+      letter-spacing: .6px;
+    }
+
+    .tc-status-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--ink-mute);
+      letter-spacing: .3px;
+    }
+
+    .tc-sep {
+      opacity: .4;
+    }
+
+    .tc-stat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .tc-stat b {
+      color: var(--ink-soft);
+    }
+
+    .tc-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: #b6bece;
+    }
+
+    .tc-dot.on {
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(18, 185, 129, .6);
+      animation: pulseDot 1.8s infinite;
+    }
+
+    @media (max-width:1080px) {
+      .top-center {
+        display: none;
+      }
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: rgba(47, 111, 237, .07);
+      border: 1px solid rgba(47, 111, 237, .15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--ink-soft);
+      position: relative;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .icon-btn:hover {
+      background: rgba(47, 111, 237, .14);
+      transform: translateY(-1px);
+      color: var(--blue);
+    }
+
+    .icon-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--red);
+      color: #fff;
+      font-family: 'JetBrains Mono';
+      font-size: 9px;
+      font-weight: 700;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 2px var(--bg-3);
+    }
+
+    /* ---------- GLOBAL AI STATUS STRIP ---------- */
+    .ai-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 9px 20px;
+      border-radius: 14px;
+      background: linear-gradient(90deg, rgba(11, 27, 51, .94), rgba(28, 53, 94, .94));
+      box-shadow: var(--shadow-sm);
+      opacity: 0;
+      transform: translateY(-8px);
+      animation: dropIn .7s cubic-bezier(.2, .8, .2, 1) .12s forwards;
+    }
+
+    .ai-strip-left,
+    .ai-strip-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ai-strip-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #a9c3e8;
+      letter-spacing: .3px;
+    }
+
+    .ai-strip-item b {
+      color: #eaf4ff;
+      font-weight: 700;
+    }
+
+    .ai-strip-metric {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #7fa8e0;
+      letter-spacing: .3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .ai-strip-metric b {
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    @media (max-width:720px) {
+      .ai-strip {
+        padding: 8px 12px;
+      }
+
+      .ai-strip-left,
+      .ai-strip-right {
+        gap: 10px;
+      }
+    }
+
+    @keyframes pulseDot {
+      0% {
+        box-shadow: 0 0 0 0 rgba(18, 185, 129, .55);
+      }
+
+      70% {
+        box-shadow: 0 0 0 8px rgba(18, 185, 129, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(18, 185, 129, 0);
+      }
+    }
+
+    @keyframes dropIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes riseIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeScale {
+      from {
+        opacity: 0;
+        transform: scale(.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px) scale(.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* ---------- GRID ---------- */
+    .grid-main {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr) 320px;
+      gap: 18px;
+      margin-top: 18px;
+      align-items: start;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 17px 18px 18px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: riseIn .65s cubic-bezier(.2, .8, .2, 1) forwards;
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition: box-shadow .35s ease, border-color .35s ease;
+      will-change: transform, opacity;
+      transform: translateZ(0);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, .9), rgba(47, 111, 237, 0) 40%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .panel:hover {
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(47, 111, 237, .35);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .panel-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .3px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title .bar {
+      width: 3px;
+      height: 13px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, var(--cyan), var(--blue));
+      display: inline-block;
+    }
+
+    .panel-sub {
+      font-size: 10.5px;
+      color: var(--ink-mute);
+      font-weight: 600;
+      letter-spacing: .2px;
+    }
+
+    .col-left .panel:nth-child(1) {
+      animation-delay: .15s
+    }
+
+    .col-left .panel:nth-child(2) {
+      animation-delay: .28s
+    }
+
+    .col-left .panel:nth-child(3) {
+      animation-delay: .41s
+    }
+
+    .col-center .tabview.active {
+      animation-delay: .1s
+    }
+
+    .col-center .nav-panel {
+      animation-delay: .5s
+    }
+
+    .col-right .panel:nth-child(1) {
+      animation-delay: .34s
+    }
+
+    .col-right .panel:nth-child(2) {
+      animation-delay: .47s
+    }
+
+    .col-right .panel:nth-child(3) {
+      animation-delay: .6s
+    }
+
+    /* ---------- CLICKABLE ROWS / CARDS ---------- */
+    .clickable {
+      cursor: pointer;
+      transition: transform .22s ease, background .22s ease, box-shadow .22s ease;
+    }
+
+    .clickable:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px -12px rgba(21, 58, 102, .28);
+    }
+
+    .clickable:active {
+      transform: translateY(0) scale(.99);
+    }
+
+    /* ---------- KPI CARDS ---------- */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .kpi {
+      border-radius: 14px;
+      padding: 12px 12px 11px;
+      background: linear-gradient(160deg, rgba(255, 255, 255, .75), rgba(255, 255, 255, .35));
+      border: 1px solid rgba(255, 255, 255, .9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi::after {
+      content: "";
+      position: absolute;
+      right: -18px;
+      top: -18px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--glow, rgba(47, 111, 237, .25)), transparent 70%);
+    }
+
+    .kpi .k-label {
+      font-size: 10.5px;
+      color: var(--ink-mute);
+      font-weight: 700;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+
+    .kpi .k-value {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 4px;
+      color: var(--ink);
+    }
+
+    .kpi .k-trend {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      margin-top: 3px;
+      font-weight: 600;
+    }
+
+    .up {
+      color: #0a9463;
+    }
+
+    .down {
+      color: #d94848;
+    }
+
+    /* ---------- FLEET LIST ---------- */
+    .fleet-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 230px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .fleet-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 9px;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .5);
+      border: 1px solid rgba(255, 255, 255, .7);
+    }
+
+    .fleet-row:hover {
+      background: rgba(255, 255, 255, .88);
+    }
+
+    .fleet-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .fleet-dot.online {
+      background: var(--green);
+      box-shadow: 0 0 0 3px rgba(18, 185, 129, .18);
+    }
+
+    .fleet-dot.idle {
+      background: var(--amber);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, .18);
+    }
+
+    .fleet-dot.offline {
+      background: #b6bece;
+    }
+
+    .fleet-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .fleet-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .fleet-route {
+      font-size: 10px;
+      color: var(--ink-mute);
+    }
+
+    .fleet-batt {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      color: var(--ink-soft);
+      font-weight: 600;
+    }
+
+    .chev {
+      color: var(--ink-mute);
+      font-size: 13px;
+      opacity: .5;
+    }
+
+    /* ---------- TABVIEWS ---------- */
+    .tabview {
+      display: none;
+    }
+
+    .tabview.active {
+      display: block;
+      opacity: 1;
+      animation: fadeScale .45s cubic-bezier(.2, .8, .2, 1) forwards;
+    }
+
+    /* ---------- MAP PANEL ---------- */
+    .map-panel {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .map-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 18px 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .map-stage {
+      position: relative;
+      height: 428px;
+      margin: 0 14px 14px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 50% 20%, #f5fbff 0%, #dcecfb 60%, #cde2f7 100%);
+      border: 1px solid rgba(255, 255, 255, .8);
+      box-shadow: inset 0 0 60px rgba(255, 255, 255, .6);
+    }
+
+    .map-hint {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--ink-mute);
+      background: rgba(255, 255, 255, .65);
+      border: 1px solid rgba(255, 255, 255, .9);
+      padding: 5px 9px;
+      border-radius: 8px;
+      backdrop-filter: blur(6px);
+    }
+
+    .map-hint.hint-right {
+      left: auto;
+      right: 12px;
+    }
+
+    .map-legend.legend-real {
+      top: auto;
+      bottom: 52px;
+      left: 12px;
+      right: auto;
+    }
+
+    .map-legend {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(255, 255, 255, .7);
+      border: 1px solid rgba(255, 255, 255, .9);
+      border-radius: 12px;
+      padding: 9px 11px;
+      backdrop-filter: blur(8px);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      color: var(--ink-soft);
+      font-weight: 600;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .map-readout {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      background: rgba(11, 27, 51, .82);
+      color: #dff1ff;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      line-height: 1.6;
+      backdrop-filter: blur(6px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .map-readout b {
+      color: #7fe3ff;
+    }
+
+    /* ---------- VIEW SWITCHER (Removed) ---------- */
+    .view-mode {
+      display: none;
+    }
+
+    .view-mode.active {
+      display: block;
+    }
+
+    /* ---------- REAL WORLD MAP ---------- */
+    #real-map {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #dbe9f8;
+    }
+
+    .maplibregl-popup-content,
+    .leaflet-popup-content-wrapper {
+      background: var(--glass-strong) !important;
+      backdrop-filter: blur(16px);
+      border-radius: 14px !important;
+      box-shadow: var(--shadow-lg) !important;
+      padding: 2px !important;
+      font-family: 'Manrope', sans-serif;
+      border: 1px solid var(--glass-border);
+    }
+
+    .leaflet-popup-content {
+      margin: 10px 12px !important;
+    }
+
+    .leaflet-popup-tip {
+      background: rgba(255, 255, 255, .9) !important;
+    }
+
+    .leaflet-popup-close-button {
+      color: var(--ink-mute) !important;
+    }
+
+    .leaflet-control-zoom a {
+      background: var(--glass-strong) !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--glass-border) !important;
+      backdrop-filter: blur(10px);
+    }
+
+    .leaflet-control-attribution {
+      background: rgba(255, 255, 255, .6) !important;
+      backdrop-filter: blur(6px);
+      font-size: 9px !important;
+    }
+
+    .leaflet-container {
+      background: #dbe9f8;
+      font-family: 'Manrope', sans-serif;
+    }
+
+    #real-map.tilted {
+      transform: perspective(1400px) rotateX(38deg) scale(1.28);
+      transform-origin: 50% 78%;
+      transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+      box-shadow: 0 40px 70px -30px rgba(11, 27, 51, .55);
+      border-radius: 14px;
+    }
+
+    #real-map {
+      transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .geo-marker-wrap {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    .mm-popup {
+      min-width: 170px;
+    }
+
+    .mm-popup .mm-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--blue);
+      letter-spacing: .4px;
+      margin-bottom: 3px;
+    }
+
+    .mm-popup .mm-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+
+    .mm-popup .mm-sub {
+      font-size: 10.5px;
+      color: var(--ink-mute);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .mm-popup .mm-btn {
+      width: 100%;
+      font-family: 'Sora';
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 7px 10px;
+      border-radius: 9px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #fff;
+      transition: transform .2s;
+    }
+
+    .mm-popup .mm-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .geo-marker {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .geo-marker .core {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+      z-index: 2;
+    }
+
+    .geo-marker .ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      opacity: .55;
+      animation: markerPulse 2.2s ease-out infinite;
+    }
+
+    .geo-marker.bus .core {
+      background: var(--green);
+    }
+
+    .geo-marker.bus .ring {
+      background: var(--green);
+    }
+
+    .geo-marker.idle .core {
+      background: var(--amber);
+    }
+
+    .geo-marker.idle .ring {
+      background: var(--amber);
+    }
+
+    .geo-marker.offline .core {
+      background: #9aa7ba;
+    }
+
+    .geo-marker.offline .ring {
+      display: none;
+    }
+
+    .geo-marker.high .core {
+      background: var(--red);
+    }
+
+    .geo-marker.high .ring {
+      background: var(--red);
+    }
+
+    .geo-marker.med .core {
+      background: var(--amber);
+    }
+
+    .geo-marker.med .ring {
+      background: var(--amber);
+    }
+
+    .geo-marker.low .core {
+      background: var(--green);
+    }
+
+    .geo-marker.low .ring {
+      background: var(--green);
+    }
+
+    .geo-marker.road .core {
+      background: var(--violet);
+      border-radius: 5px;
+    }
+
+    .geo-marker.road .ring {
+      display: none;
+    }
+
+    @keyframes markerPulse {
+      0% {
+        transform: scale(.5);
+        opacity: .65;
+      }
+
+      100% {
+        transform: scale(2.4);
+        opacity: 0;
+      }
+    }
+
+    .map-toolbar {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      z-index: 5;
+    }
+
+    .map-toolbar .mchip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, .72);
+      border: 1px solid rgba(255, 255, 255, .9);
+      color: var(--ink-soft);
+      backdrop-filter: blur(6px);
+      transition: all .2s;
+    }
+
+    .map-toolbar .mchip.active {
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .map-search {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      width: min(280px, 52%);
+    }
+
+    .map-search input {
+      width: 100%;
+      font-family: 'Manrope';
+      font-size: 11.5px;
+      padding: 9px 13px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .9);
+      background: rgba(255, 255, 255, .82);
+      backdrop-filter: blur(8px);
+      color: var(--ink);
+      box-shadow: var(--shadow-sm);
+      outline: none;
+    }
+
+    .map-search input::placeholder {
+      color: var(--ink-mute);
+    }
+
+    .map-search input:focus {
+      border-color: rgba(47, 111, 237, .4);
+    }
+
+    /* ---------- GENERIC TAB CONTENT WIDGETS ---------- */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .subpanel {
+      background: rgba(255, 255, 255, .5);
+      border: 1px solid rgba(255, 255, 255, .85);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .subpanel h4 {
+      margin: 0 0 10px;
+      font-family: 'Sora';
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .row-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 330px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .data-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 11px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .55);
+      border: 1px solid rgba(255, 255, 255, .85);
+    }
+
+    .data-row:hover {
+      background: rgba(255, 255, 255, .9);
+    }
+
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 7px;
+      flex-shrink: 0;
+    }
+
+    .badge.good {
+      background: rgba(18, 185, 129, .14);
+      color: #0a7a54;
+    }
+
+    .badge.warn {
+      background: rgba(245, 158, 11, .16);
+      color: #a05a02;
+    }
+
+    .badge.bad {
+      background: rgba(239, 68, 68, .14);
+      color: #c22323;
+    }
+
+    .spark {
+      width: 64px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .cam-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 3px;
+    }
+
+    .fleet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+    }
+
+    .fleet-card {
+      background: rgba(255, 255, 255, .55);
+      border: 1px solid rgba(255, 255, 255, .85);
+      border-radius: 14px;
+      padding: 13px;
+    }
+
+    .fleet-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .cam-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .od-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    .od-cell {
+      aspect-ratio: 1;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono';
+      font-size: 9px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .od-head {
+      font-family: 'JetBrains Mono';
+      font-size: 9.5px;
+      color: var(--ink-mute);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    /* ---------- BOTTOM NAV ---------- */
+    .nav-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tab {
+      font-family: 'Sora', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      padding: 9px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid rgba(47, 111, 237, .14);
+      background: rgba(255, 255, 255, .5);
+      transition: all .25s ease;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .tab svg {
+      width: 14px;
+      height: 14px;
+      opacity: .75;
+    }
+
+    .tab:hover {
+      background: rgba(255, 255, 255, .9);
+      transform: translateY(-1px);
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, var(--ink) 0%, #1c355e 120%);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 10px 22px -10px rgba(11, 27, 51, .55);
+    }
+
+    .tab.active svg {
+      opacity: 1;
+    }
+
+    .dots {
+      display: flex;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .dots span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(47, 111, 237, .25);
+    }
+
+    .dots span.on {
+      background: var(--blue);
+      width: 16px;
+      border-radius: 4px;
+      transition: all .3s ease;
+    }
+
+    /* ---------- CONSENSUS GAUGE ---------- */
+    .gauge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .gauge {
+      width: 98px;
+      height: 98px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+      background: conic-gradient(var(--cyan) 0deg, var(--blue) var(--g, 346deg), rgba(47, 111, 237, .1) var(--g, 346deg));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 26px -12px rgba(47, 111, 237, .5);
+    }
+
+    .gauge::before {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border-radius: 50%;
+      background: var(--bg-3);
+      box-shadow: inset 0 2px 6px rgba(21, 58, 102, .08);
+    }
+
+    .gauge b {
+      position: relative;
+      font-family: 'Sora';
+      font-size: 19px;
+      color: var(--ink);
+    }
+
+    .gauge span {
+      position: relative;
+      font-size: 9px;
+      color: var(--ink-mute);
+      margin-top: -2px;
+    }
+
+    .gauge-text {
+      flex: 1;
+    }
+
+    .gauge-text .g-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .gauge-text .g-desc {
+      font-size: 11px;
+      color: var(--ink-mute);
+      line-height: 1.5;
+    }
+
+    .corrob-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .corrob-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--blue);
+      background: rgba(47, 111, 237, .08);
+      border: 1px solid rgba(47, 111, 237, .18);
+      border-radius: 7px;
+      padding: 3px 7px;
+      cursor: pointer;
+    }
+
+    .corrob-chip:hover {
+      background: rgba(47, 111, 237, .18);
+    }
+
+    /* ---------- INCIDENT FEED ---------- */
+    .feed {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .feed-item {
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .55);
+      border: 1px solid rgba(255, 255, 255, .8);
+      animation: feedIn .5s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    @keyframes feedIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px) scale(.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .feed-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+
+    .feed-type {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .feed-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      color: var(--ink-mute);
+    }
+
+    .feed-meta {
+      font-size: 10px;
+      color: var(--ink-mute);
+    }
+
+    .sev {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: 6px;
+    }
+
+    .sev.low {
+      background: rgba(18, 185, 129, .12);
+      color: #0a7a54;
+    }
+
+    .sev.med {
+      background: rgba(245, 158, 11, .15);
+      color: #a05a02;
+    }
+
+    .sev.high {
+      background: rgba(239, 68, 68, .14);
+      color: #c22323;
+    }
+
+    /* ---------- CHARTS ---------- */
+    .chart-box {
+      height: 150px;
+      position: relative;
+    }
+
+    .chart-box.short {
+      height: 130px;
+    }
+
+    .chart-box.tall {
+      height: 220px;
+    }
+
+    .status-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    .status-legend div {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--ink-mute);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .status-legend .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 3px;
+    }
+
+    .tilt {
+      transition: transform .12s ease-out;
+    }
+
+    .ticker-strip {
+      margin-top: 4px;
+      overflow: hidden;
+      border-top: 1px dashed var(--line);
+      padding-top: 8px;
+    }
+
+    .ticker-track {
+      display: flex;
+      gap: 32px;
+      white-space: nowrap;
+      animation: tickerMove 26s linear infinite;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      color: var(--ink-mute);
+    }
+
+    .ticker-track span {
+      cursor: pointer;
+    }
+
+    .ticker-track span:hover {
+      color: var(--blue);
+    }
+
+    @keyframes tickerMove {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* ---------- MODAL ---------- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(9, 22, 42, .42);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease;
+      padding: 20px;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-card {
+      width: min(560px, 100%);
+      max-height: 84vh;
+      overflow-y: auto;
+      background: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      padding: 22px 24px 24px;
+      transform: translateY(26px) scale(.96);
+      transition: transform .4s cubic-bezier(.2, .8, .2, 1);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    .modal-overlay.open .modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .modal-eyebrow {
+      font-family: 'JetBrains Mono';
+      font-size: 10px;
+      color: var(--blue);
+      font-weight: 700;
+      letter-spacing: .4px;
+      margin-bottom: 4px;
+    }
+
+    .modal-title {
+      font-family: 'Sora';
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0;
+    }
+
+    .modal-sub {
+      font-size: 11.5px;
+      color: var(--ink-mute);
+      margin-top: 3px;
+    }
+
+    .modal-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 1px solid rgba(47, 111, 237, .18);
+      background: rgba(47, 111, 237, .06);
+      color: var(--ink-soft);
+      cursor: pointer;
+      flex-shrink: 0;
+      font-size: 15px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+
+    .modal-close:hover {
+      background: rgba(239, 68, 68, .12);
+      color: #c22323;
+      border-color: rgba(239, 68, 68, .25);
+    }
+
+    .modal-body {
+      margin-top: 14px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 14px 0;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, .6);
+      border: 1px solid rgba(255, 255, 255, .9);
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .stat-box b {
+      display: block;
+      font-family: 'Sora';
+      font-size: 17px;
+      color: var(--ink);
+    }
+
+    .stat-box span {
+      font-size: 9.5px;
+      color: var(--ink-mute);
+      font-weight: 600;
+    }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 6px;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      border-left: 2px solid rgba(47, 111, 237, .25);
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -5px;
+      top: 12px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .timeline-item b {
+      font-size: 11.5px;
+    }
+
+    .timeline-item p {
+      margin: 2px 0 0;
+      font-size: 10.5px;
+      color: var(--ink-mute);
+    }
+
+    .modal-note {
+      margin-top: 14px;
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      line-height: 1.6;
+      background: rgba(47, 111, 237, .06);
+      border: 1px solid rgba(47, 111, 237, .14);
+      border-radius: 12px;
+      padding: 11px 13px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      font-family: 'Sora';
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 11px;
+      border: none;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #fff;
+      box-shadow: 0 8px 18px -8px rgba(47, 111, 237, .6);
+    }
+
+    .btn-ghost {
+      background: rgba(47, 111, 237, .08);
+      color: var(--ink-soft);
+      border: 1px solid rgba(47, 111, 237, .16);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    /* ---------- TOASTS ---------- */
+    #toast-stack {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: var(--shadow-lg);
+      font-size: 12px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(16px);
+      animation: popIn .35s cubic-bezier(.2, .8, .2, 1);
+      min-width: 220px;
+    }
+
+    .toast .dotok {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+
+    /* ---------- AI PRIORITY QUEUE ---------- */
+    .pq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pq-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 15px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .55);
+      border: 1px solid rgba(255, 255, 255, .85);
+    }
+
+    .pq-row:hover {
+      background: rgba(255, 255, 255, .92);
+    }
+
+    .pq-rank {
+      font-family: 'Sora', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--ink-mute);
+      width: 30px;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .pq-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .pq-dot.high {
+      background: var(--red);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, .18);
+    }
+
+    .pq-dot.med {
+      background: var(--amber);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, .18);
+    }
+
+    .pq-dot.low {
+      background: var(--green);
+      box-shadow: 0 0 0 3px rgba(18, 185, 129, .18);
+    }
+
+    .pq-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pq-title {
+      font-family: 'Sora';
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .pq-sub {
+      font-size: 10.5px;
+      color: var(--ink-mute);
+      margin-top: 2px;
+    }
+
+    .pq-score-wrap {
+      text-align: center;
+      flex-shrink: 0;
+      width: 70px;
+    }
+
+    .pq-score {
+      font-family: 'Sora';
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--blue);
+    }
+
+    .pq-score-l {
+      font-size: 9px;
+      color: var(--ink-mute);
+      font-weight: 700;
+      letter-spacing: .3px;
+    }
+
+    .score-bd {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .score-bd-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .score-bd-label {
+      font-size: 10.5px;
+      color: var(--ink-soft);
+      font-weight: 600;
+      width: 110px;
+      flex-shrink: 0;
+    }
+
+    .score-bd-bar {
+      flex: 1;
+      height: 7px;
+      border-radius: 4px;
+      background: rgba(47, 111, 237, .1);
+      overflow: hidden;
+    }
+
+    .score-bd-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+    }
+
+    .score-bd-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--ink-mute);
+      font-weight: 700;
+      width: 44px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ---------- VISION AI ---------- */
+    .vision-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width:900px) {
+      .vision-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .vision-feed-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .vision-feed-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-soft);
+      letter-spacing: .3px;
+    }
+
+    .vision-feed-live {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: #0a7a54;
+    }
+
+    .vision-frame {
+      position: relative;
+      height: 270px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: linear-gradient(160deg, #2a3242, #171c26 65%);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .vf-road {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, #45505f 0%, #383f4c 45%, #23272f 100%);
+    }
+
+    .vf-road::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      transform: translateX(-50%);
+      background: repeating-linear-gradient(180deg, rgba(255, 255, 255, .55) 0 22px, transparent 22px 44px);
+      opacity: .6;
+    }
+
+    .vf-box {
+      position: absolute;
+      border: 2px solid var(--red);
+      border-radius: 4px;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, .25);
+    }
+
+    .vf-box.amber {
+      border-color: var(--amber);
+    }
+
+    .vf-box.blue {
+      border-color: #38bdf8;
+    }
+
+    .vf-box-label {
+      position: absolute;
+      top: -24px;
+      left: -2px;
+      background: var(--red);
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 5px;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .vf-box.amber .vf-box-label {
+      background: var(--amber);
+    }
+
+    .vf-box.blue .vf-box-label {
+      background: #38bdf8;
+    }
+
+    .vf-scanline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(6, 182, 212, .9), transparent);
+      animation: scan 2.6s linear infinite;
+      box-shadow: 0 0 12px rgba(6, 182, 212, .7);
+    }
+
+    @keyframes scan {
+      0% {
+        top: 0;
+      }
+
+      100% {
+        top: 100%;
+      }
+    }
+
+    .vf-tag {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      color: #cfe0ff;
+      background: rgba(0, 0, 0, .45);
+      padding: 4px 8px;
+      border-radius: 6px;
+      letter-spacing: .4px;
+    }
+
+    .vision-det-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .vd-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .vd-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      width: 120px;
+      flex-shrink: 0;
+    }
+
+    .vd-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(47, 111, 237, .1);
+      overflow: hidden;
+    }
+
+    .vd-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .vd-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--ink);
+      width: 44px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .vision-stats-col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .vstat {
+      background: rgba(255, 255, 255, .55);
+      border: 1px solid rgba(255, 255, 255, .85);
+      border-radius: 14px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+
+    .vstat-v {
+      font-family: 'Sora';
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .vstat-l {
+      font-size: 10px;
+      color: var(--ink-mute);
+      font-weight: 700;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5px;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+
+    .pipeline-flow span {
+      background: rgba(47, 111, 237, .08);
+      border: 1px solid rgba(47, 111, 237, .16);
+      padding: 4px 6px;
+      border-radius: 6px;
+    }
+
+    .pipeline-flow i {
+      color: var(--ink-mute);
+      font-style: normal;
+    }
+
+    /* ---------- TRUST CHECKLIST ---------- */
+    .trust-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin: 12px 0;
+    }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      font-weight: 600;
+    }
+
+    .trust-item .tick {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: rgba(18, 185, 129, .16);
+      color: #0a7a54;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    /* ---------- WORK ORDER ---------- */
+    .wo-stepper {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 14px 0;
+    }
+
+    .wo-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 7px 0;
+      position: relative;
+    }
+
+    .wo-step:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 9px;
+      top: 26px;
+      bottom: -7px;
+      width: 2px;
+      background: rgba(47, 111, 237, .16);
+    }
+
+    .wo-step.done:not(:last-child)::before {
+      background: var(--green);
+    }
+
+    .wo-node {
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      background: rgba(47, 111, 237, .1);
+      border: 2px solid rgba(47, 111, 237, .25);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--blue);
+      font-weight: 800;
+      margin-top: 1px;
+      transition: all .3s;
+    }
+
+    .wo-step.done .wo-node {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .wo-step.current .wo-node {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+      box-shadow: 0 0 0 4px rgba(47, 111, 237, .18);
+    }
+
+    .wo-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .wo-step.done .wo-label {
+      color: #0a7a54;
+    }
+
+    .wo-step:not(.done):not(.current) .wo-label {
+      color: var(--ink-mute);
+    }
+
+    .wo-meta {
+      font-size: 9.5px;
+      color: var(--ink-mute);
+      margin-top: 1px;
+    }
+
+    /* ---------- BEFORE / AFTER ---------- */
+    .ba-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      align-items: center;
+      margin: 14px 0;
+    }
+
+    .ba-panel {
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, .5);
+      border: 1px solid rgba(255, 255, 255, .85);
+    }
+
+    .ba-img {
+      height: 90px;
+      position: relative;
+    }
+
+    .ba-img.before {
+      background: linear-gradient(160deg, #3a3f2c, #2a2e20 70%);
+    }
+
+    .ba-img.after {
+      background: linear-gradient(160deg, #1f3a2e, #16251e 70%);
+    }
+
+    .ba-img .ba-crack {
+      position: absolute;
+      left: 32%;
+      top: 40%;
+      width: 36%;
+      height: 22%;
+      border: 2px solid var(--red);
+      border-radius: 6px;
+    }
+
+    .ba-tag {
+      position: absolute;
+      left: 6px;
+      bottom: 6px;
+      font-family: 'JetBrains Mono';
+      font-size: 8px;
+      font-weight: 700;
+      color: #e8f0ff;
+      background: rgba(0, 0, 0, .4);
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+
+    .ba-cap {
+      padding: 8px 10px;
+      font-size: 10.5px;
+      color: var(--ink-soft);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .ba-arrow {
+      font-size: 18px;
+      color: var(--ink-mute);
+    }
+
+    .health-jump {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: 'Sora';
+      font-weight: 800;
+      font-size: 26px;
+      margin: 6px 0 2px;
+    }
+
+    .health-jump .from {
+      color: var(--red);
+    }
+
+    .health-jump .to {
+      color: #0a9463;
+    }
+
+    .health-jump .arrow {
+      color: var(--ink-mute);
+      font-size: 18px;
+    }
+
+    /* ---------- AI COPILOT ---------- */
+    .copilot-fab {
+      position: fixed;
+      right: 26px;
+      bottom: 26px;
+      z-index: 70;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      box-shadow: 0 14px 30px -10px rgba(47, 111, 237, .65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform .25s ease;
+      border: 3px solid rgba(255, 255, 255, .85);
+    }
+
+    .copilot-fab:hover {
+      transform: scale(1.06) translateY(-2px);
+    }
+
+    .copilot-fab svg {
+      width: 26px;
+      height: 26px;
+      color: #fff;
+    }
+
+    .copilot-fab .cf-ping {
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 2px solid rgba(47, 111, 237, .4);
+      animation: markerPulse 2.4s ease-out infinite;
+    }
+
+    .copilot-drawer {
+      position: fixed;
+      right: 26px;
+      bottom: 96px;
+      z-index: 71;
+      width: min(380px, 88vw);
+      max-height: min(600px, 72vh);
+      background: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(24px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(18px) scale(.97);
+      pointer-events: none;
+      transition: all .3s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .copilot-drawer.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+
+    .cp-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(11, 27, 51, .94), rgba(28, 53, 94, .94));
+      flex-shrink: 0;
+    }
+
+    .cp-head-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .cp-head-icon svg {
+      width: 18px;
+      height: 18px;
+      color: #fff;
+    }
+
+    .cp-head-text b {
+      display: block;
+      font-family: 'Sora';
+      font-size: 13px;
+      color: #fff;
+    }
+
+    .cp-head-text span {
+      font-size: 10px;
+      color: #9fc1ec;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .cp-close {
+      margin-left: auto;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .12);
+      color: #dfeaff;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .cp-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cp-msg {
+      max-width: 88%;
+      padding: 9px 12px;
+      border-radius: 13px;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .cp-msg.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      white-space: pre-wrap;
+    }
+
+    .cp-msg.ai {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, .7);
+      border: 1px solid rgba(255, 255, 255, .9);
+      color: var(--ink);
+      border-bottom-left-radius: 4px;
+      white-space: pre-wrap;
+    }
+
+    .cp-msg.ai b {
+      color: var(--ink);
+    }
+
+    .cp-prompts {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 0 16px 12px;
+      flex-shrink: 0;
+    }
+
+    .cp-prompt {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      background: rgba(47, 111, 237, .07);
+      border: 1px solid rgba(47, 111, 237, .15);
+      border-radius: 10px;
+      padding: 8px 11px;
+      cursor: pointer;
+      transition: all .2s;
+      text-align: left;
+    }
+
+    .cp-prompt:hover {
+      background: rgba(47, 111, 237, .15);
+    }
+
+    .cp-inputrow {
+      display: flex;
+      gap: 8px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    .cp-inputrow input {
+      flex: 1;
+      border: 1px solid rgba(47, 111, 237, .18);
+      background: rgba(255, 255, 255, .7);
+      border-radius: 11px;
+      padding: 9px 12px;
+      font-size: 12px;
+      outline: none;
+      font-family: 'Manrope';
+    }
+
+    .cp-inputrow input:focus {
+      border-color: rgba(47, 111, 237, .45);
+    }
+
+    .cp-send {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cp-send svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (max-width:480px) {
+      .copilot-drawer {
+        right: 10px;
+        left: 10px;
+        width: auto;
+        bottom: 88px;
+      }
+
+      .copilot-fab {
+        right: 16px;
+        bottom: 16px;
+      }
+    }
+
+    @media (max-width:1240px) {
+      .grid-main {
+        grid-template-columns: 1fr;
+      }
+
+      .col-left,
+      .col-right {
+        order: 2;
+      }
+
+      .col-center {
+        order: 1;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width:720px) {
+      .app {
+        padding: 14px 12px 28px;
+      }
+
+      .topbar {
+        padding: 11px 14px;
+        border-radius: 14px;
+      }
+
+      .brand-text p {
+        display: none;
+      }
+
+      .clock {
+        min-width: auto;
+        padding: 7px 9px;
+        font-size: 11px;
+      }
+
+      .map-stage {
+        height: 320px;
+        margin: 0 8px 10px;
+      }
+
+      .map-search {
+        width: 70%;
+      }
+
+      .view-btn span.vlabel {
+        display: none;
+      }
+
+      .kpi .k-value {
+        font-size: 18px;
+      }
+
+      .nav-tabs {
+        gap: 4px;
+      }
+
+      .tab {
+        padding: 8px 11px;
+        font-size: 11px;
+      }
+
+      .map-legend {
+        display: none;
+      }
+
+      .stat-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @keyframes severePulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      }
+
+      70% {
+        box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
+    }
+
+    .sev.high,
+    .badge.bad {
+      animation: severePulse 2s infinite;
+      border: 1px solid rgba(239, 68, 68, 0.8);
+    }
+
+    /* =========================================================
+       MAP-FIRST RESPONSIVE COMMAND CENTER
+       Desktop: large map + right command drawer
+       Mobile: full-screen map + slide-over drawer
+       ========================================================= */
+
+    .grid-main {
+      grid-template-columns: minmax(0, 1fr) 440px;
+      gap: 16px;
+      margin-top: 14px;
+      align-items: start;
+    }
+
+    .col-center {
+      min-width: 0;
+    }
+
+    /* Left KPI column becomes drawer content, not a separate column. */
+    .col-left {
+      display: none;
+    }
+
+    .col-right {
+      display: block;
+      min-width: 0;
+    }
+
+    .side-drawer {
+      min-width: 0;
+      position: sticky;
+      top: 14px;
+      display: flex;
+      flex-direction: column;
+      align-self: start;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      overflow: hidden;
+      z-index: 20;
+    }
+
+    .drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .24);
+      flex-shrink: 0;
+    }
+
+    .drawer-kicker {
+      font: 700 8.5px/1 'JetBrains Mono', monospace;
+      letter-spacing: 1.2px;
+      color: var(--blue);
+      margin-bottom: 4px;
+    }
+
+    .drawer-title {
+      font: 700 13px/1.2 'Sora', sans-serif;
+      color: var(--ink);
+    }
+
+    .drawer-close,
+    .drawer-fab {
+      border: 1px solid rgba(47, 111, 237, .16);
+      background: rgba(47, 111, 237, .07);
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .drawer-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      font-size: 18px;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .drawer-close:hover {
+      background: rgba(239, 68, 68, .12);
+      color: #c22323;
+    }
+
+    .drawer-scroll {
+      min-height: 0;
+      overflow: visible;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-flow: dense;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .drawer-scroll .panel {
+      margin: 0;
+      padding: 16px;
+      border-radius: 15px;
+      min-width: 0;
+      height: 100%;
+    }
+
+    .drawer-scroll .panel:hover {
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Deliberate bento rhythm: large anchors + smaller supporting cards. */
+    .drawer-scroll #network-panel {
+      grid-column: 1 / -1;
+      min-height: 206px;
+    }
+
+    .drawer-scroll #gauge-panel {
+      grid-column: 1 / -1;
+      min-height: 178px;
+    }
+
+    .drawer-scroll #fleet-status-panel {
+      grid-column: 1 / 2;
+      min-height: 238px;
+    }
+
+    .drawer-scroll #infra-panel {
+      grid-column: 2 / 3;
+      min-height: 238px;
+    }
+
+    .drawer-scroll #road-index-panel {
+      grid-column: 1 / -1;
+      min-height: 205px;
+    }
+
+    .drawer-scroll #incident-panel {
+      grid-column: 1 / -1;
+      min-height: 255px;
+    }
+
+    /* Navigation lives in the drawer and becomes compact. */
+    .drawer-scroll .nav-panel {
+      order: -2;
+      grid-column: 1 / -1;
+      align-items: stretch;
+      padding: 9px;
+      height: auto;
+    }
+
+    .drawer-scroll .nav-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      justify-content: stretch;
+    }
+
+    .drawer-scroll .tab {
+      min-width: 0;
+      justify-content: flex-start;
+      padding: 8px 9px;
+      border-radius: 9px;
+      font-size: 16px;
+    }
+
+    .drawer-scroll .ticker-strip {
+      display: none;
+    }
+
+    /* Make the map consume most of the viewport. */
+    .map-panel {
+      min-height: calc(100vh - 150px);
+    }
+
+    .map-stage {
+      height: calc(100vh - 235px);
+      min-height: 560px;
+    }
+
+    .map-head {
+      padding: 13px 16px 10px;
+    }
+
+
+    .drawer-scroll .panel-head {
+      margin-bottom: 14px;
+    }
+
+    .drawer-scroll .panel-title {
+      font-size: 12.5px;
+    }
+
+    .drawer-scroll .panel-sub {
+      font-size: 10px;
+    }
+
+    .drawer-scroll .kpi-grid {
+      gap: 10px;
+    }
+
+    .drawer-scroll .kpi {
+      padding: 13px;
+    }
+
+    .drawer-scroll .kpi .k-value {
+      font-size: 21px;
+    }
+
+    .drawer-scroll .fleet-list,
+    .drawer-scroll .feed {
+      max-height: none;
+      overflow: visible;
+    }
+
+    .drawer-scroll .fleet-row {
+      padding: 10px;
+    }
+
+    .drawer-scroll .chart-box.short {
+      height: 138px;
+    }
+
+    .drawer-scroll .chart-box {
+      height: 154px;
+    }
+
+    .drawer-scroll #fleet-status-panel {
+      transform: translateY(6px);
+    }
+
+    .drawer-scroll #infra-panel {
+      transform: translateY(-2px);
+    }
+
+    .drawer-scroll #road-index-panel {
+      transform: translateY(4px);
+    }
+
+    .drawer-scroll #incident-panel {
+      transform: translateY(-1px);
+    }
+
+    /* Fleet Consensus: use the lower-left area instead of leaving it empty. */
+    .drawer-scroll #gauge-panel {
+      min-height: 224px;
+    }
+
+    .consensus-main {
+      display: grid;
+      grid-template-columns: 116px minmax(0, 1fr);
+      gap: 18px;
+      align-items: center;
+    }
+
+    .consensus-gauge-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+    }
+
+    .drawer-scroll .gauge {
+      width: 96px;
+      height: 96px;
+    }
+
+    .drawer-scroll .gauge::before {
+      inset: 10px;
+    }
+
+    .drawer-scroll .gauge-value {
+      position: relative;
+      z-index: 1;
+      font-family: 'Sora';
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .drawer-scroll .gauge-label {
+      position: relative;
+      z-index: 1;
+      margin-top: -4px;
+      font-size: 8.5px;
+      line-height: 1;
+      color: var(--ink-mute);
+      letter-spacing: .02em;
+    }
+
+    .consensus-mini-stats {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .consensus-mini-stats>div {
+      min-width: 0;
+      padding: 6px 5px;
+      text-align: center;
+      border: 1px solid rgba(47, 111, 237, .11);
+      border-radius: 8px;
+      background: rgba(247, 250, 255, .78);
+    }
+
+    .consensus-mini-stats b {
+      display: block;
+      font-family: 'Sora';
+      font-size: 11px;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+
+    .consensus-mini-stats span {
+      display: block;
+      margin-top: 2px;
+      font-size: 7.5px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--ink-mute);
+    }
+
+    .drawer-scroll .gauge-text {
+      min-width: 0;
+    }
+
+    .consensus-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 9px;
+      padding: 4px 7px;
+      border-radius: 7px;
+      background: rgba(18, 185, 129, .08);
+      color: #129b70;
+      font-size: 7.5px;
+      font-weight: 800;
+      letter-spacing: .045em;
+    }
+
+    .consensus-status span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #12b981;
+      box-shadow: 0 0 0 3px rgba(18, 185, 129, .10);
+    }
+
+    .drawer-scroll .corrob-row {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(47, 111, 237, .09);
+    }
+
+    .drawer-scroll .status-legend {
+      margin-top: 12px;
+    }
+
+    .drawer-scroll .nav-panel {
+      padding: 12px;
+    }
+
+    /* On desktop the drawer is a content rail, not a viewport-height box. */
+    @media (min-width: 721px) {
+      .side-drawer {
+        height: auto;
+        max-height: none;
+      }
+
+      .drawer-scroll {
+        max-height: none;
+      }
+    }
+
+    /* Tablet: slightly narrower drawer. */
+    @media (max-width: 1100px) and (min-width: 721px) {
+      .grid-main {
+        grid-template-columns: minmax(0, 1fr) 350px;
+      }
+
+      .drawer-scroll {
+        grid-template-columns: 1fr;
+      }
+
+      .drawer-scroll .panel,
+      .drawer-scroll #network-panel,
+      .drawer-scroll #gauge-panel,
+      .drawer-scroll #fleet-status-panel,
+      .drawer-scroll #infra-panel,
+      .drawer-scroll #road-index-panel,
+      .drawer-scroll #incident-panel,
+      .drawer-scroll .nav-panel {
+        grid-column: 1;
+      }
+
+      .map-stage {
+        height: calc(100vh - 245px);
+        min-height: 480px;
+      }
+
+      .drawer-scroll .nav-tabs {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Mobile: full-width map + true slide-over drawer. */
+    .drawer-fab {
+      display: none;
+      position: fixed;
+      right: 16px;
+      bottom: 18px;
+      z-index: 70;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      box-shadow: 0 12px 28px -12px rgba(11, 27, 51, .5);
+      place-items: center;
+      gap: 3px;
+      padding: 10px;
+    }
+
+    .drawer-fab span {
+      display: block;
+      width: 20px;
+      height: 2px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        padding: 10px 10px 24px;
+      }
+
+      .grid-main {
+        display: block;
+        margin-top: 10px;
+      }
+
+      .col-center {
+        width: 100%;
+      }
+
+      .map-panel {
+        min-height: 0;
+        border-radius: 14px;
+      }
+
+      .map-stage {
+        height: calc(100vh - 190px);
+        min-height: 430px;
+        margin: 0 8px 8px;
+      }
+
+      .map-head {
+        padding: 11px 12px 9px;
+      }
+
+      .map-head .chip-row {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 2px;
+      }
+
+      .chip {
+        flex-shrink: 0;
+      }
+
+      .side-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(88vw, 360px);
+        height: 100dvh;
+        max-height: none;
+        border-radius: 18px 0 0 18px;
+        transform: translateX(105%);
+        transition: transform .3s cubic-bezier(.2, .8, .2, 1);
+        box-shadow: -18px 0 50px -24px rgba(11, 27, 51, .55);
+        z-index: 100;
+      }
+
+      body.drawer-open::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 90;
+        background: rgba(9, 22, 42, .38);
+        backdrop-filter: blur(2px);
+      }
+
+      body.drawer-open .side-drawer {
+        transform: translateX(0);
+      }
+
+      .drawer-fab {
+        display: grid;
+      }
+
+      body.drawer-open .drawer-fab {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .drawer-scroll {
+        padding: 10px;
+        overflow-y: auto;
+        gap: 10px;
+        grid-template-columns: 1fr;
+      }
+
+      .drawer-scroll .panel,
+      .drawer-scroll #network-panel,
+      .drawer-scroll #gauge-panel,
+      .drawer-scroll #fleet-status-panel,
+      .drawer-scroll #infra-panel,
+      .drawer-scroll #road-index-panel,
+      .drawer-scroll #incident-panel,
+      .drawer-scroll .nav-panel {
+        grid-column: 1;
+        min-height: 0;
+      }
+
+      .drawer-scroll .panel {
+        padding: 14px;
+        height: auto;
+      }
+
+      .consensus-main {
+        grid-template-columns: 108px minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .drawer-scroll .gauge {
+        width: 90px;
+        height: 90px;
+      }
+
+      .drawer-scroll .nav-tabs {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .drawer-scroll #fleet-status-panel,
+      .drawer-scroll #infra-panel,
+      .drawer-scroll #road-index-panel,
+      .drawer-scroll #incident-panel {
+        transform: none;
+      }
+
+      .consensus-main {
+        grid-template-columns: 1fr;
+      }
+
+      .consensus-gauge-col {
+        justify-self: center;
+      }
+
+      .drawer-scroll .gauge-text {
+        text-align: center;
+      }
+
+      .consensus-status {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .brand {
+        gap: 9px;
+      }
+
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+      }
+
+      .brand-text h1 {
+        font-size: 16px;
+      }
+
+      .top-right {
+        gap: 6px;
+      }
+
+      .live-pill {
+        padding: 7px 9px;
+      }
+
+      .clock {
+        display: none;
+      }
+
+      .map-readout {
+        font-size: 9px;
+        padding: 7px 9px;
+      }
+
+      .map-search {
+        width: 58%;
+        top: 9px;
+      }
+
+      .map-search input {
+        font-size: 10px;
+        padding: 8px 10px;
+      }
+
+      .map-toolbar {
+        left: 9px;
+        right: 9px;
+        bottom: 9px;
+        max-height: 64px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+
+      .map-toolbar .mchip {
+        flex-shrink: 0;
+      }
+
+      .col-center>.tabview:not(#tab-map) {
+        min-height: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .side-drawer,
+      .drawer-fab,
+      .drawer-close {
+        transition: none !important;
+      }
+    }
+
+
+    /* V5: map-first command-center layout.
+       The command-panel features live BELOW the map instead of consuming
+       the map's right-hand side. */
+    @media (min-width: 1101px) {
+      .grid-main {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 16px !important;
+        align-items: start !important;
+      }
+
+      .grid-main>.col-center {
+        grid-column: 1 / -1;
+        min-width: 0;
+      }
+
+      .grid-main>.side-drawer {
+        grid-column: 1 / -1;
+        position: relative !important;
+        top: auto !important;
+        width: 100%;
+        overflow: visible !important;
+        border-radius: 18px;
+      }
+
+      .side-drawer .drawer-head {
+        padding: 13px 16px;
+      }
+
+      .drawer-scroll {
+        display: grid !important;
+        grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+        grid-auto-flow: dense;
+        gap: 14px !important;
+        padding: 14px !important;
+        overflow: visible !important;
+        align-items: stretch;
+      }
+
+      /* Full-width navigation remains the command toolbar. */
+      .drawer-scroll .nav-panel {
+        grid-column: 1 / -1 !important;
+        grid-row: auto;
+      }
+
+      /* Irregular feature grid underneath the map. */
+      .drawer-scroll #gauge-panel {
+        grid-column: span 5 !important;
+        min-height: 235px;
+      }
+
+      .drawer-scroll #network-panel {
+        grid-column: span 4 !important;
+        min-height: 235px;
+      }
+
+      .drawer-scroll #infra-panel {
+        grid-column: span 3 !important;
+        min-height: 235px;
+      }
+
+      .drawer-scroll #fleet-status-panel {
+        grid-column: span 4 !important;
+        min-height: 255px;
+        transform: translateY(5px);
+      }
+
+      .drawer-scroll #road-index-panel {
+        grid-column: span 4 !important;
+        min-height: 255px;
+        transform: translateY(-1px);
+      }
+
+      .drawer-scroll #incident-panel {
+        grid-column: span 4 !important;
+        min-height: 255px;
+        transform: translateY(7px);
+      }
+
+      .drawer-scroll .panel {
+        height: 100%;
+      }
+
+      .drawer-scroll #gauge-panel .consensus-main {
+        grid-template-columns: 120px minmax(0, 1fr);
+      }
+    }
+
+    /* Medium desktop/tablet: two rows with sensible proportions. */
+    @media (min-width: 721px) and (max-width: 1100px) {
+      .grid-main {
+        grid-template-columns: minmax(0, 1fr) !important;
+      }
+
+      .grid-main>.col-center,
+      .grid-main>.side-drawer {
+        grid-column: 1 / -1;
+      }
+
+      .drawer-scroll {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        grid-auto-flow: dense;
+        gap: 12px !important;
+        overflow: visible !important;
+      }
+
+      .drawer-scroll .nav-panel,
+      .drawer-scroll #gauge-panel,
+      .drawer-scroll #network-panel,
+      .drawer-scroll #road-index-panel,
+      .drawer-scroll #incident-panel {
+        grid-column: 1 / -1 !important;
+      }
+
+      .drawer-scroll #fleet-status-panel,
+      .drawer-scroll #infra-panel {
+        grid-column: span 1 !important;
+      }
+
+      .drawer-scroll #fleet-status-panel,
+      .drawer-scroll #infra-panel,
+      .drawer-scroll #road-index-panel,
+      .drawer-scroll #incident-panel {
+        transform: none;
+      }
+    }
+
+    /* Mobile remains a slide-over command drawer, since stacking a huge
+       feature rail under the map would be painful on a phone. */
+    @media (max-width: 720px) {
+      .drawer-scroll {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+
+      .drawer-scroll .nav-panel,
+      .drawer-scroll #gauge-panel,
+      .drawer-scroll #network-panel,
+      .drawer-scroll #fleet-status-panel,
+      .drawer-scroll #infra-panel,
+      .drawer-scroll #road-index-panel,
+      .drawer-scroll #incident-panel {
+        grid-column: auto !important;
+        min-height: 0 !important;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="bg-particles"></canvas>
+  <div class="app">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none">
+            <path d="M3 12h4l2-6 4 12 2-8h6" stroke="#fff" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg></div>
+        <div class="brand-text">
+          <h1>VEEKSHA</h1>
+          <p>MOBILE URBAN INTELLIGENCE &amp; EVIDENCE NETWORK</p>
+        </div>
+      </div>
+      <div class="top-center">
+        <div class="tc-city">GHAZIABAD <span>· UP</span></div>
+        <div class="tc-status-row">
+          <span class="tc-stat"><span class="tc-dot on"></span>NETWORK OPERATIONAL</span>
+          <span class="tc-sep">·</span>
+          <span class="tc-stat"><span class="tc-dot on"></span>AI ENGINE ONLINE</span>
+          <span class="tc-sep">·</span>
+          <span class="tc-stat" id="tc-sync"><span class="tc-dot on"></span>SYNCED <b id="tc-sync-time">2s</b>
+            AGO</span>
+        </div>
+      </div>
+      <div class="top-right">
+        <div class="live-pill" id="live-pill"><span class="live-dot"></span> LIVE FLEET FEED</div>
+        <div class="icon-btn" id="notif-btn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          <span class="icon-badge" id="notif-badge">3</span>
+        </div>
+        <div class="icon-btn" id="fullscreen-btn" title="Fullscreen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+          </svg>
+        </div>
+        <div class="icon-btn" id="theme-btn" title="Toggle theme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </svg>
+        </div>
+        <div class="clock" id="clock">--:--:--</div>
+        <div class="avatar" id="avatar-btn">TA</div>
+      </div>
+    </div>
+
+    <!-- GLOBAL AI STATUS STRIP -->
+    <div class="ai-strip">
+      <div class="ai-strip-left">
+        <span class="ai-strip-item"><span class="tc-dot on"></span>AI ENGINE <b>ONLINE</b></span>
+        <span class="ai-strip-item"><span class="tc-dot on"></span>CV MODEL <b>ACTIVE</b></span>
+        <span class="ai-strip-item"><span class="tc-dot on"></span>GIS <b>LIVE</b></span>
+      </div>
+      <div class="ai-strip-right">
+        <span class="ai-strip-metric"><b id="strip-sensors">50</b>SENSORS</span>
+        <span class="ai-strip-metric"><b id="strip-frames">2,481</b>FRAMES</span>
+        <span class="ai-strip-metric"><b id="strip-events">187</b>EVENTS</span>
+        <span class="ai-strip-metric"><b id="strip-conf">96%</b>AVG CONF.</span>
+      </div>
+    </div>
+
+    <div class="grid-main">
+
+      <!-- CENTER COLUMN -->
+      <div class="col col-center">
+
+        <!-- TAB: LIVE MAP -->
+        <section class="panel map-panel tilt tabview active" id="tab-map">
+          <div class="map-head">
+            <div class="panel-title"><span class="bar"></span>Live Fleet &amp; Event Map</div>
+          </div>
+          <div class="map-stage">
+            <div class="view-mode active" id="view-real" style="position:absolute;inset:0;">
+              <div id="real-map"></div>
+              <div class="map-search"><input id="geo-search" type="text" placeholder="Search bus, sector or issue…"
+                  autocomplete="off" /></div>
+              <div class="map-readout" id="real-readout">GHAZIABAD, UP, INDIA<br>ZOOM <b id="rr-zoom">12.4</b> · TILT <b
+                  id="rr-pitch">OFF</b><br>MARKERS <b id="rr-count">—</b></div>
+              <div class="map-legend legend-real">
+                <div class="legend-item"><span class="legend-dot" style="background:#12b981"></span>Bus online</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Bus idle</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>High severity</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#6d5bd0"></span>Road segment</div>
+              </div>
+              <div class="map-toolbar" id="map-toolbar">
+                <div class="mchip" data-layer="tilt">Tilt View</div>
+                <div class="mchip active" data-layer="buses">Buses</div>
+                <div class="mchip active" data-layer="incidents">Incidents</div>
+                <div class="mchip active" data-layer="roads">Road segments</div>
+                <div class="mchip" data-action="topdown">Top-down</div>
+                <div class="mchip" data-action="reset">Reset view</div>
+              </div>
+              <div class="map-hint hint-right">drag to pan · scroll to zoom · click a marker · exact GPS on every point
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: TRAFFIC -->
+        <section class="panel tilt tabview" id="tab-traffic">
+          <div class="panel-head">
+            <div class="panel-title"><span class="bar"></span>Traffic Intelligence</div>
+            <div class="panel-sub">Live vehicle counts</div>
+          </div>
+          <div class="grid-2">
+            <div class="subpanel">
+              <h4>Vehicle Composition (last hour)</h4>
+              <div class="chart-box"><canvas id="vehicleChart"></canvas></div>
+            </div>
+            <div class="subpanel">
+              <h4>Congestion by Road Segment</h4>
+              <div class="chart-box"><canvas id="congestionChart"></canvas></div>
+            </div>
+          </div>
+          <div class="subpanel" style="margin-top:14px;">
+            <h4>Origin–Destination Matrix (trips / hr, click a zone)</h4>
+            <div class="od-grid" id="od-grid"></div>
+          </div>
+        </section>
+
+        <!-- TAB: ROAD INTELLIGENCE -->
+        <section class="panel tilt tabview" id="tab-road">
+          <div class="panel-head">
+            <div class="panel-title"><span class="bar"></span>Road Intelligence</div>
+            <div class="panel-sub">8 monitored segments</div>
+          </div>
+          <div class="row-list" id="road-list"></div>
+        </section>
+
+        <!-- TAB: INCIDENTS -->
+        <section class="panel tilt tabview" id="tab-incidents">
+          <div class="panel-head">
+            <div class="panel-title"><span class="bar"></span>Incident Register</div>
+            <div class="panel-sub" id="incident-count">— total</div>
+          </div>
+          <div class="filter-chips" id="incident-filters">
+            <div class="chip active" data-sev="all">All</div>
+            <div class="chip" data-sev="high">High</div>
+            <div class="chip" data-sev="med">Medium</div>
+            <div class="chip" data-sev="low">Low</div>
+          </div>
+          <div class="row-list" id="incident-list" style="max-height:360px;"></div>
+        </section>
+
+        <!-- TAB: AI PRIORITY QUEUE -->
+        <section class="panel tilt tabview" id="tab-priority">
+          <div class="panel-head">
+            <div class="panel-title"><span class="bar"></span>AI Priority Queue</div>
+            <div class="panel-sub">Auto-ranked by severity, exposure &amp; corroboration</div>
+          </div>
+          <div class="pq-list" id="priority-list"></div>
+        </section>
+
+        <!-- TAB: VISION AI -->
+        <section class="panel tilt tabview" id="tab-vision">
+          <div class="panel-head">
+            <div class="panel-title"><span class="bar"></span>Vision AI · Live Camera Analysis</div>
+            <div class="panel-sub">Simulated demo feed — wire to model API for production</div>
+          </div>
+          <div class="vision-grid">
+            <div class="vision-feed-col">
+              <div class="vision-feed-head">
+                <span class="vision-feed-title">BUS-023 · FRONT CAMERA</span>
+                <span class="vision-feed-live"><span class="live-dot"></span>ANALYZING</span>
+              </div>
+              <div class="vision-frame" id="vision-frame">
+                <div class="vf-road"></div>
+                <div class="vf-box" id="vf-box-1" style="left:28%;top:52%;width:17%;height:16%;">
+                  <span class="vf-box-label">POTHOLE<br><b>96.4%</b></span>
+                </div>
+                <div class="vf-box amber" id="vf-box-2" style="left:58%;top:34%;width:22%;height:10%;">
+                  <span class="vf-box-label">ROAD CRACK<br><b>88.2%</b></span>
+                </div>
+                <div class="vf-box blue" id="vf-box-3" style="left:8%;top:70%;width:26%;height:13%;">
+                  <span class="vf-box-label">WATERLOGGING<br><b>74.1%</b></span>
+                </div>
+                <div class="vf-scanline"></div>
+                <div class="vf-tag">SIMULATED DEMO FEED</div>
+              </div>
+              <div class="vision-det-list" id="vision-det-list"></div>
+            </div>
+            <div class="vision-stats-col">
+              <div class="vstat">
+                <div class="vstat-v" id="vs-frames">2,481</div>
+                <div class="vstat-l">Frames Analyzed</div>
+              </div>
+              <div class="vstat">
+                <div class="vstat-v" id="vs-det">187</div>
+                <div class="vstat-l">Detections</div>
+              </div>
+              <div class="vstat">
+                <div class="vstat-v" id="vs-high">42</div>
+                <div class="vstat-l">High-Risk</div>
+              </div>
+              <div class="vstat">
+                <div class="vstat-v" id="vs-corr">31</div>
+                <div class="vstat-l">Corroborated</div>
+              </div>
+              <div class="subpanel" style="margin-top:2px;">
+                <h4>Model Pipeline</h4>
+                <div class="pipeline-flow">
+                  <span>CAMERA</span><i>→</i><span>CV
+                    MODEL</span><i>→</i><span>DETECTION</span><i>→</i><span>GPS</span><i>→</i><span>CORROBORATION</span><i>→</i><span>CONFIDENCE</span><i>→</i><span>PRIORITY</span><i>→</i><span>ACTION</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: FLEET -->
+        <section class="panel tilt tabview" id="tab-fleet">
+          <div class="panel-head">
+            <div class="panel-title"><span class="bar"></span>Fleet Directory</div>
+            <div class="panel-sub">Cameras · battery · last event</div>
+          </div>
+          <div class="fleet-grid" id="fleet-grid"></div>
+        </section>
+
+        <!-- TAB: ANALYTICS -->
+        <section class="panel tilt tabview" id="tab-analytics">
+          <div class="panel-head">
+            <div class="panel-title"><span class="bar"></span>Analytics</div>
+            <div class="panel-sub">Citywide patterns</div>
+          </div>
+          <div class="grid-2">
+            <div class="subpanel">
+              <h4>Hourly Event Volume</h4>
+              <div class="chart-box"><canvas id="hourlyChart"></canvas></div>
+            </div>
+            <div class="subpanel">
+              <h4>Priority Score Distribution</h4>
+              <div class="chart-box"><canvas id="priorityChart"></canvas></div>
+            </div>
+          </div>
+          <div class="grid-2" style="margin-top:14px;">
+            <div class="subpanel">
+              <h4>Infrastructure Status</h4>
+              <div class="chart-box short"><canvas id="infraChartBig"></canvas></div>
+            </div>
+            <div class="subpanel">
+              <h4>Fleet Confidence Trend</h4>
+              <div class="chart-box"><canvas id="confidenceChart"></canvas></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: REPORTS -->
+        <section class="panel tilt tabview" id="tab-reports">
+          <div class="panel-head">
+            <div class="panel-title"><span class="bar"></span>Reports</div>
+            <div class="panel-sub">Generated for stakeholders</div>
+          </div>
+          <div class="row-list" id="report-list" style="max-height:400px;"></div>
+        </section>
+
+        <!-- BOTTOM NAV (persistent) -->
+        <section class="panel nav-panel tilt">
+          <div class="nav-tabs" id="nav-tabs">
+            <div class="tab active" data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M9 20l-5-2V4l5 2m0 14l6-2m-6 2V6m6 12l5 2V6l-5-2m0 14V4m0 2l-6-2" />
+              </svg>Live Map</div>
+            <div class="tab" data-tab="traffic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M3 12h18M3 6h18M3 18h18" />
+              </svg>Traffic</div>
+            <div class="tab" data-tab="road"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M12 2v20M5 22l3-16M19 22l-3-16" />
+              </svg>Road Intel</div>
+            <div class="tab" data-tab="incidents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8v5M12 16h.01" />
+              </svg>Incidents</div>
+            <div class="tab" data-tab="priority"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M4 6h16M4 12h10M4 18h6" />
+                <circle cx="19" cy="16" r="2.4" />
+              </svg>AI Priority</div>
+            <div class="tab" data-tab="vision"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <rect x="2" y="6" width="15" height="12" rx="2" />
+                <path d="M17 10l5-3v10l-5-3" />
+              </svg>Vision AI</div>
+            <div class="tab" data-tab="fleet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <rect x="3" y="7" width="18" height="10" rx="2" />
+                <circle cx="8" cy="19" r="1.5" />
+                <circle cx="16" cy="19" r="1.5" />
+              </svg>Fleet</div>
+            <div class="tab" data-tab="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M4 20V10M12 20V4M20 20v-7" />
+              </svg>Analytics</div>
+            <div class="tab" data-tab="reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M6 2h9l3 3v17H6z" />
+                <path d="M9 12h6M9 16h6" />
+              </svg>Reports</div>
+          </div>
+          <div class="dots" id="dots"></div>
+          <div class="ticker-strip">
+            <div class="ticker-track" id="ticker-track"></div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT COMMAND DRAWER -->
+      <aside class="side-drawer" id="side-drawer">
+        <div class="drawer-head">
+          <div>
+            <div class="drawer-kicker">CITY CONTROL</div>
+            <div class="drawer-title">Command Panels</div>
+          </div>
+          <button class="drawer-close" id="drawer-close" aria-label="Close command panels">×</button>
+        </div>
+        <div class="drawer-scroll" id="drawer-scroll">
+
+
+          <section class="panel tilt" id="network-panel">
+            <div class="panel-head">
+              <div class="panel-title"><span class="bar"></span>Network Snapshot</div>
+              <div class="panel-sub">Today</div>
+            </div>
+            <div class="kpi-grid" id="kpi-grid"></div>
+          </section>
+
+          <section class="panel tilt" id="fleet-status-panel">
+            <div class="panel-head">
+              <div class="panel-title"><span class="bar"></span>Fleet Status</div>
+              <div class="panel-sub" id="fleet-online-count">— online</div>
+            </div>
+            <div class="fleet-list" id="fleet-list"></div>
+          </section>
+
+          <section class="panel tilt" id="road-index-panel">
+            <div class="panel-head">
+              <div class="panel-title"><span class="bar"></span>Road Condition Index</div>
+              <div class="panel-sub">8-week trend</div>
+            </div>
+            <div class="chart-box"><canvas id="trendChart"></canvas></div>
+          </section>
+
+          <section class="panel tilt clickable" id="gauge-panel">
+            <div class="panel-head">
+              <div class="panel-title"><span class="bar"></span>Fleet Consensus Engine</div>
+            </div>
+            <div class="consensus-main">
+              <div class="consensus-gauge-col">
+                <div class="gauge" style="--g:346deg">
+                  <div class="gauge-value">96%</div>
+                  <div class="gauge-label">confidence</div>
+                </div>
+                <div class="consensus-mini-stats">
+                  <div><b>4</b><span>buses</span></div>
+                  <div><b>51m</b><span>window</span></div>
+                </div>
+              </div>
+              <div class="gauge-text">
+                <div class="g-title">RI-1042 · Pothole, Sector 7</div>
+                <div class="g-desc">4 independent buses corroborated the same road issue within 51 minutes.</div>
+                <div class="consensus-status"><span></span> VERIFIED BY FLEET CONSENSUS</div>
+              </div>
+            </div>
+            <div class="corrob-row" id="corrob-row"></div>
+          </section>
+
+          <section class="panel tilt" id="incident-panel">
+            <div class="panel-head">
+              <div class="panel-title"><span class="bar"></span>Live Incident Feed</div>
+              <div class="panel-sub">auto-updating</div>
+            </div>
+            <div class="feed" id="feed"></div>
+          </section>
+
+          <section class="panel tilt" id="infra-panel">
+            <div class="panel-head">
+              <div class="panel-title"><span class="bar"></span>Infrastructure Status</div>
+              <div class="panel-sub">click a segment</div>
+            </div>
+            <div class="chart-box short"><canvas id="infraChart"></canvas></div>
+            <div class="status-legend" id="infra-legend">
+              <div data-k="present"><span class="dot" style="background:#12b981"></span>Present</div>
+              <div data-k="deficient"><span class="dot" style="background:#ef4444"></span>Deficient</div>
+              <div data-k="unknown"><span class="dot" style="background:#b6bece"></span>Unknown</div>
+            </div>
+          </section>
+
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-card" id="modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="modal-eyebrow" id="modal-eyebrow">DETAIL</div>
+          <h3 class="modal-title" id="modal-title">Title</h3>
+          <div class="modal-sub" id="modal-sub">Subtitle</div>
+        </div>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="toast-stack"></div>
+  <button class="drawer-fab" id="drawer-fab" aria-label="Open command panels" title="Open command panels">
+    <span></span><span></span><span></span>
+  </button>
+
+
+  <!-- AI COPILOT -->
+  <div class="copilot-fab" id="copilot-fab" title="VEEKSHA AI">
+    <span class="cf-ping"></span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" />
+      <path d="M8 14h8a4 4 0 0 1 4 4v1H4v-1a4 4 0 0 1 4-4z" />
+    </svg>
+  </div>
+  <div class="copilot-drawer" id="copilot-drawer">
+    <div class="cp-head">
+      <div class="cp-head-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+          <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z" />
+          <path d="M8 14h8a4 4 0 0 1 4 4v1H4v-1a4 4 0 0 1 4-4z" />
+        </svg></div>
+      <div class="cp-head-text"><b>VEEKSHA AI</b><span><span class="tc-dot on"></span>Urban Intelligence Copilot ·
+          Online</span></div>
+      <button class="cp-close" id="cp-close">✕</button>
+    </div>
+    <div class="cp-body" id="cp-body">
+      <div class="cp-msg ai">Hi, I'm the VEEKSHA copilot. Ask me about road health, incidents, congestion, fleet status,
+        or ask for an executive summary.</div>
+    </div>
+    <div class="cp-prompts" id="cp-prompts">
+      <div class="cp-prompt" data-q="Which roads need urgent repair?">Which roads need urgent repair?</div>
+      <div class="cp-prompt" data-q="Show today's critical incidents">Show today's critical incidents</div>
+      <div class="cp-prompt" data-q="Why is congestion high?">Why is congestion high?</div>
+      <div class="cp-prompt" data-q="Which buses are offline?">Which buses are offline?</div>
+      <div class="cp-prompt" data-q="Generate executive summary">Generate executive summary</div>
+    </div>
+    <div class="cp-inputrow">
+      <input type="text" id="cp-input" placeholder="Ask VEEKSHA AI…" autocomplete="off" />
+      <button class="cp-send" id="cp-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+        </svg></button>
+    </div>
+  </div>
+
+
+  <script>
+    /* MAP-FIRST LAYOUT: move existing dashboard panels into the right drawer. */
+    (() => {
+      const drawer = document.getElementById('drawer-scroll');
+      const left = document.querySelector('.col-left');
+      const nav = document.querySelector('.nav-panel');
+
+      if (drawer) {
+        if (nav) drawer.appendChild(nav);
+        if (left) [...left.children].forEach(el => drawer.appendChild(el));
+      }
+
+      const openDrawer = () => document.body.classList.add('drawer-open');
+      const closeDrawer = () => document.body.classList.remove('drawer-open');
+
+      document.getElementById('drawer-fab')?.addEventListener('click', openDrawer);
+      document.getElementById('drawer-close')?.addEventListener('click', closeDrawer);
+
+      // Close when tapping the dimmed area.
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 720 &&
+          document.body.classList.contains('drawer-open') &&
+          !e.target.closest('#side-drawer') &&
+          !e.target.closest('#drawer-fab')) {
+          closeDrawer();
+        }
+      });
+
+      // Selecting a section on mobile also closes the drawer.
+      drawer?.addEventListener('click', (e) => {
+        if (window.innerWidth <= 720 && e.target.closest('.tab')) {
+          closeDrawer();
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 720) closeDrawer();
+      });
+    })();
+  </script>
+
+  <script>
+    /* ================= IDENTITY & ACCESS MANAGEMENT ================= */
+    let currentRole = 'admin';
+
+    function switchLogin(role) {
+      currentRole = role;
+      const tabAdmin = document.getElementById('tab-admin');
+      const tabEdge = document.getElementById('tab-edge');
+      const lblUser = document.getElementById('lbl-user');
+      const lblPass = document.getElementById('lbl-pass');
+      const inpUser = document.getElementById('inp-user');
+      const inpPass = document.getElementById('inp-pass');
+      const camGroup = document.getElementById('cam-input-group');
+
+      if (role === 'admin') {
+        tabAdmin.className = "flex-1 py-2 text-xs font-bold text-white bg-gray-800 rounded-md shadow transition-all";
+        tabEdge.className = "flex-1 py-2 text-xs font-bold text-slate-500 hover:text-white transition-all";
+        lblUser.textContent = "OFFICIAL EMAIL";
+        inpUser.placeholder = "admin@veeksha.gov.in";
+        inpUser.value = "admin@veeksha.gov.in";
+        lblPass.textContent = "SECURE PASSWORD";
+        camGroup.classList.add('hidden');
+      } else {
+        tabEdge.className = "flex-1 py-2 text-xs font-bold text-white bg-gray-800 rounded-md shadow transition-all";
+        tabAdmin.className = "flex-1 py-2 text-xs font-bold text-slate-500 hover:text-white transition-all";
+        lblUser.textContent = "BUS FLEET ID";
+        inpUser.placeholder = "UP14-BT-0041";
+        inpUser.value = "UP14-BT-0041";
+        lblPass.textContent = "FLEET PIN";
+        camGroup.classList.remove('hidden');
+      }
+    }
+
+    function handleLogin() {
+      const portal = document.getElementById('login-portal');
+
+      if (currentRole === 'admin') {
+        // Admin login unlocks the main dashboard
+        portal.style.opacity = '0';
+        setTimeout(() => {
+          portal.style.display = 'none';
+          toast('Authorization successful. Welcome, Admin.');
+          // Initialize WebSockets and maps AFTER login
+          initRealMap();
+        }, 500);
+      } else {
+        // Edge Node login triggers the camera feed flow
+        const busId = document.getElementById('inp-user').value;
+        const camIp = document.getElementById('inp-cam').value;
+
+        // In production, this shifts the UI to the driver's simple camera view
+        // and sends a WebSocket message to the Python server that this bus is active.
+        portal.innerHTML = `
+      <div class="text-center">
+        <h2 class="text-3xl font-bold text-green-400 mb-2">CONNECTED</h2>
+        <p class="text-slate-300 font-mono">${busId} is now streaming to Command Center</p>
+        <p class="text-xs text-slate-500 mt-4">Keep this screen open during the shift.</p>
+      </div>
+    `;
+
+        if (camIp) {
+          // Logic to ping FastAPI with the new camera IP goes here
+          console.log(`Sending ${camIp} to backend for ${busId}`);
+        }
+      }
+    }
+    /* ================= UTIL ================= */
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    /* ================= TOASTS ================= */
+    function toast(msg) {
+      const stack = document.getElementById('toast-stack');
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.innerHTML = `<span class="dotok"></span>${msg}`;
+      stack.appendChild(el);
+      setTimeout(() => { el.style.transition = 'opacity .4s ease, transform .4s ease'; el.style.opacity = '0'; el.style.transform = 'translateY(6px)'; setTimeout(() => el.remove(), 400); }, 2600);
+    }
+
+    /* ================= MODAL ================= */
+    const overlay = document.getElementById('modal-overlay');
+    const modalTitle = document.getElementById('modal-title');
+    const modalSub = document.getElementById('modal-sub');
+    const modalEyebrow = document.getElementById('modal-eyebrow');
+    const modalBody = document.getElementById('modal-body');
+    function openModal(eyebrow, title, sub, bodyHtml) {
+      modalEyebrow.textContent = eyebrow;
+      modalTitle.textContent = title;
+      modalSub.textContent = sub;
+      modalBody.innerHTML = bodyHtml;
+      overlay.classList.add('open');
+    }
+    function closeModal() { overlay.classList.remove('open'); }
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    function statGrid(items) {
+      return `<div class="stat-grid">${items.map(i => `<div class="stat-box"><b>${i.v}</b><span>${i.l}</span></div>`).join('')}</div>`;
+    }
+    function sevBadgeClass(s) { return s === 'high' ? 'bad' : (s === 'med' ? 'warn' : 'good'); }
+
+    /* ================= BACKGROUND PARTICLES ================= */
+    (function () {
+      const canvas = document.getElementById('bg-particles');
+      const ctx = canvas.getContext('2d');
+      let w, h, particles = [];
+      function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+      resize(); window.addEventListener('resize', resize);
+      for (let i = 0; i < 46; i++) { particles.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 2 + .6, vy: Math.random() * .18 + .05, vx: (Math.random() - .5) * .12, o: Math.random() * .5 + .15 }); }
+      function tick() {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of particles) {
+          p.y -= p.vy; p.x += p.vx;
+          if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(47,111,237,' + p.o + ')'; ctx.fill();
+        }
+        requestAnimationFrame(tick);
+      }
+      tick();
+    })();
+
+    /* ================= LIVE CLOCK ================= */
+    function updateClock() {
+      const el = document.getElementById('clock');
+      const opts = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' };
+      el.textContent = new Date().toLocaleTimeString('en-GB', opts) + ' IST';
+    }
+    updateClock(); setInterval(updateClock, 1000);
+    document.getElementById('live-pill').addEventListener('click', () => toast('Streaming live from active buses'));
+
+    /* ================= TOPBAR ICON ACTIONS ================= */
+    document.getElementById('notif-btn').addEventListener('click', () => {
+      document.getElementById('notif-badge').style.display = 'none';
+      openModal('NOTIFICATIONS', '3 new alerts', 'Since last check', `<div class="row-list">
+    <div class="data-row"><div style="flex:1"><b style="font-size:11.5px">Kavi Nagar Loop escalated</b><div style="font-size:10px;color:var(--ink-mute)">Priority score crossed 95 · 2m ago</div></div><span class="badge bad">HIGH</span></div>
+    <div class="data-row"><div style="flex:1"><b style="font-size:11.5px">BUS-057 went offline</b><div style="font-size:10px;color:var(--ink-mute)">Lost GPS signal · 6m ago</div></div><span class="badge warn">FLEET</span></div>
+    <div class="data-row"><div style="flex:1"><b style="font-size:11.5px">Work order WO-2841 closed</b><div style="font-size:10px;color:var(--ink-mute)">AI verified repair · 14m ago</div></div><span class="badge good">DONE</span></div>
+  </div>`);
+    });
+    document.getElementById('fullscreen-btn').addEventListener('click', () => {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen?.().catch(() => toast('Fullscreen not available in this context')); }
+      else { document.exitFullscreen?.(); }
+    });
+    document.getElementById('theme-btn').addEventListener('click', () => {
+      document.body.classList.toggle('theme-dark');
+      toast(document.body.classList.contains('theme-dark') ? 'Switched to dark command mode' : 'Switched to light mode');
+    });
+
+    /* ================= SYNC TIMER + AI STRIP LIVE JITTER ================= */
+    let syncSec = 2;
+    setInterval(() => { syncSec = syncSec >= 9 ? 1 : syncSec + 1; document.getElementById('tc-sync-time').textContent = syncSec + 's'; }, 1000);
+    setInterval(() => {
+      const frEl = document.getElementById('strip-frames'), evEl = document.getElementById('strip-events');
+      if (frEl) frEl.textContent = (2481 + rand(0, 40)).toLocaleString('en-IN');
+      if (evEl) evEl.textContent = (187 + rand(0, 6)).toString();
+    }, 3500);
+    document.getElementById('avatar-btn').addEventListener('click', () => openModal('SESSION', 'Traffic Authority', 'Signed in as command-centre operator',
+      statGrid([{ v: 'Admin', l: 'Role' }, { v: 'GZB-North', l: 'Region' }, { v: '12', l: 'Shift hrs' }]) + '<div class="modal-note">Role-based access control governs which incidents and reports this account can act on.</div>'));
+
+    /* ================= TILT HOVER EFFECT ================= */
+    document.querySelectorAll('.tilt').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+        card.style.transform = `perspective(900px) rotateX(${(-y * 3.2).toFixed(2)}deg) rotateY(${(x * 3.2).toFixed(2)}deg) translateZ(2px)`;
+      });
+      card.addEventListener('mouseleave', () => { card.style.transform = 'perspective(900px) rotateX(0) rotateY(0)'; });
+    });
+
+    /* ================= DATA MODELS ================= */
+    /* ================= REALISTIC UP/GHAZIABAD DATA MODELS ================= */
+    const routes = ['UP-33 (Anand Vihar - Dasna)', 'UP-12 (Kaushambi - Modinagar)', 'UP-88 (Mohan Nagar - RNE)', 'UP-45 (Indirapuram Loop)', 'UP-15 (Crossings - Noida)', 'UP-33 (Vasundhara - Delhi)', 'UP-02 (Meerut Road Exp)', 'UP-18 (Loni Road)'];
+    const busIds = ['UP14-BT-0041', 'UP14-AT-1109', 'UP14-CT-9192', 'UP14-FT-2301', 'UP16-BT-3104', 'UP14-ET-4209', 'UP14-DT-5701', 'UP14-AT-6302'];
+    const sectors = ['Indirapuram Habitat', 'Vaishali Sec-4', 'Mohan Nagar Jn', 'NH-9 Underpass', 'Raj Nagar Extension', 'Crossings Republik', 'Kavi Nagar', 'Sahibabad Ind. Area'];
+    const camNames = ['Front (Dashcam)', 'Rear', 'Left (Blindspot)', 'Right', 'Cabin'];
+
+    const FLEET = busIds.map((id, i) => {
+      const status = pick(['online', 'online', 'online', 'idle', 'offline']);
+      return {
+        id, route: routes[i], status,
+        battery: status === 'offline' ? 0 : rand(58, 99),
+        sector: pick(sectors),
+        gps: [(28.62 + Math.random() * 0.10).toFixed(4), (77.35 + Math.random() * 0.10).toFixed(4)],
+        cameras: camNames.map(() => Math.random() > 0.12),
+        lastEvent: pick(['Deep Pothole flagged', 'Waterlogging near drain', 'Divider broken', 'Congestion note']),
+        eventsToday: rand(3, 22)
+      };
+    });
+
+    const ROADS = [
+      { id: 'R-NH9', name: 'NH-9 (Indirapuram Stretch)', score: 32, trend: 'down', potholes: 18, water: 4, infra: 3, obs: 42, buses: 12, first: '12 Aug', gps: [28.6358, 77.3736] },
+      { id: 'R-GTR', name: 'GT Road (Mohan Nagar)', score: 45, trend: 'down', potholes: 12, water: 2, infra: 2, obs: 28, buses: 8, first: '03 Aug', gps: [28.6789, 77.3943] },
+      { id: 'R-RNE', name: 'Raj Nagar Ext. Bypass', score: 78, trend: 'flat', potholes: 2, water: 0, infra: 1, obs: 14, buses: 5, first: '21 Jul', gps: [28.7112, 77.4333] },
+      { id: 'R-LNK', name: 'Link Road (Vasundhara)', score: 82, trend: 'up', potholes: 1, water: 0, infra: 0, obs: 9, buses: 4, first: '02 Sep', gps: [28.6622, 77.3705] },
+      { id: 'R-KAV', name: 'Kavi Nagar Loop', score: 38, trend: 'down', potholes: 15, water: 5, infra: 2, obs: 35, buses: 9, first: '28 Jun', gps: [28.6612, 77.4453] },
+      { id: 'R-CISF', name: 'CISF Road (Indirapuram)', score: 66, trend: 'flat', potholes: 4, water: 1, infra: 0, obs: 16, buses: 6, first: '14 Aug', gps: [28.6415, 77.3820] },
+      { id: 'R-MEE', name: 'Meerut Road (Modinagar)', score: 47, trend: 'down', potholes: 9, water: 2, infra: 2, obs: 21, buses: 7, first: '19 Jul', gps: [28.6825, 77.4010] },
+      { id: 'R-CRS', name: 'Crossings Republik Rd', score: 88, trend: 'up', potholes: 0, water: 0, infra: 0, obs: 11, buses: 4, first: '30 Aug', gps: [28.6274, 77.4180] }
+    ];
+
+    const eventTypes = [
+      { t: 'Crater / Deep Pothole', s: 'high' }, { t: 'Severe Waterlogging', s: 'med' }, { t: 'Zebra crossing washed out', s: 'low' },
+      { t: 'Heavy Congestion (Bottleneck)', s: 'med' }, { t: 'Central Divider broken', s: 'high' }, { t: 'Traffic Sign missing', s: 'low' },
+      { t: 'Pedestrian crossing risk', s: 'high' }, { t: 'Road resurfaced — verified', s: 'low' }
+    ];
+    // (Keep the INCIDENTS generation code exactly as it is below this)
+    const INCIDENTS = Array.from({ length: 16 }).map((_, i) => {
+      const ev = pick(eventTypes);
+      return {
+        id: 'IN-' + (2200 + i), type: ev.t, severity: ev.s, bus: pick(busIds), sector: pick(sectors),
+        time: (i * 13 + 4) + 'm ago', confidence: rand(84, 99), corroboration: rand(1, 5),
+        gps: [+(28.60 + Math.random() * 0.15).toFixed(4), +(77.35 + Math.random() * 0.2).toFixed(4)]
+      };
+    });
+
+    /* ================= AI PRIORITY ENGINE ================= */
+    INCIDENTS.forEach(inc => {
+      const severity = inc.severity === 'high' ? rand(25, 30) : inc.severity === 'med' ? rand(15, 23) : rand(5, 14);
+      const traffic = rand(13, 25);
+      const corroboration = Math.min(20, inc.corroboration * 4 + rand(0, 2));
+      const recurrence = rand(6, 15);
+      const age = rand(4, 10);
+      inc.priority = { severity, traffic, corroboration, recurrence, age, total: severity + traffic + corroboration + recurrence + age };
+    });
+
+    const REPORTS = [
+      { title: 'UP PWD Road Condition Audit', type: 'PDF', date: '11 Sep 2026', size: '2.4 MB', summary: 'Aggregated AI condition scores across NH-9 and GT Road; 3 segments trending down, flags Indirapuram stretch for urgent monsoon repair.' },
+      { title: 'Smart City Incident Verification', type: 'PDF', date: '10 Sep 2026', size: '1.1 MB', summary: '312 anomalies reviewed, 289 verified via UPSRTC fleet corroboration, 23 held at Unknown pending further CV analysis.' },
+      { title: 'UPSRTC Fleet VEEKsha Utilization', type: 'XLSX', date: '09 Sep 2026', size: '640 KB', summary: 'Uptime, edge-node health and route coverage for all 50 active Ghaziabad buses over the last 7 days.' },
+      { title: 'NH-9 Congestion & OD Analysis', type: 'PDF', date: '07 Sep 2026', size: '3.0 MB', summary: 'Peak-hour congestion mapped to origin-destination flows; recommends immediate pothole patching near CISF camp to clear bottleneck.' },
+      { title: 'Nagar Nigam Infra Deficiency Log', type: 'CSV', date: '05 Sep 2026', size: '310 KB', summary: 'All road infrastructure items classified Present / Deficient / Unknown with AI observation counts and GPS tags.' }
+    ];
+
+    /* ================= KPI CARDS ================= */
+    const kpiData = [
+      {
+        label: 'Active Buses', value: 50, trend: '▲ 12 since 08:00', up: true, glow: 'rgba(6,182,212,.3)',
+        detail: () => statGrid([{ v: '32', l: 'Online' }, { v: '11', l: 'Idle' }, { v: '7', l: 'Offline' }]) +
+          '<div class="modal-note">Idle buses are parked or between shifts; offline buses have lost network or GPS signal for over 5 minutes.</div>'
+      },
+      {
+        label: 'Events Today', value: 1284, trend: '▲ 6.4% vs avg', up: true, glow: 'rgba(47,111,237,.3)',
+        detail: () => statGrid([{ v: '412', l: 'Road hazard' }, { v: '528', l: 'Traffic' }, { v: '344', l: 'Infrastructure' }]) +
+          '<div class="modal-note">Events are raw edge-AI detections before corroboration — many share the same underlying road issue.</div>'
+      },
+      {
+        label: 'Verified Issues', value: 312, trend: '▲ confidence 94%', up: true, glow: 'rgba(18,185,129,.3)',
+        detail: () => statGrid([{ v: '94%', l: 'Avg confidence' }, { v: '8', l: 'Avg buses/issue' }, { v: '2.1h', l: 'Avg time to verify' }]) +
+          '<div class="modal-note">An issue is "verified" once independent observations from multiple buses agree it is a real, physical problem.</div>'
+      },
+      {
+        label: 'Open Priority', value: 47, trend: '▼ 3 resolved today', up: false, glow: 'rgba(245,158,11,.3)',
+        detail: () => '<div class="row-list">' + ROADS.slice(0, 5).map(r => `<div class="data-row"><div style="flex:1"><b style="font-size:11.5px">${r.name}</b><div style="font-size:10px;color:var(--ink-mute)">${r.id} · ${r.obs} observations</div></div><span class="badge ${r.score < 45 ? 'bad' : (r.score < 70 ? 'warn' : 'good')}">${r.score}/100</span></div>`).join('') + '</div>'
+      }
+    ];
+    const kpiGrid = document.getElementById('kpi-grid');
+    kpiData.forEach((k, i) => {
+      const el = document.createElement('div');
+      el.className = 'kpi clickable';
+      el.style.setProperty('--glow', k.glow);
+      el.innerHTML = `<div class="k-label">${k.label}</div><div class="k-value" data-count="${k.value}">0</div><div class="k-trend ${k.up ? 'up' : 'down'}">${k.trend}</div>`;
+      el.addEventListener('click', () => openModal('NETWORK SNAPSHOT', k.label, 'Breakdown for today', k.detail()));
+      kpiGrid.appendChild(el);
+    });
+
+    function animateCounters() {
+      document.querySelectorAll('[data-count]').forEach(el => {
+        const target = parseInt(el.getAttribute('data-count'), 10);
+        const dur = 1400, start = performance.now();
+        function step(t) {
+          const p = Math.min(1, (t - start) / dur), eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(target * eased).toLocaleString('en-IN');
+          if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      });
+    }
+    setTimeout(animateCounters, 500);
+
+    /* ================= FLEET SIDEBAR ================= */
+    function busDetailHtml(b) {
+      return statGrid([{ v: b.battery + '%', l: 'Battery' }, { v: b.eventsToday, l: 'Events today' }, { v: b.cameras.filter(Boolean).length + '/5', l: 'Cameras up' }]) +
+        `<div class="cam-row">${camNames.map((n, i) => `<span class="badge ${b.cameras[i] ? 'good' : 'bad'}">${n}</span>`).join('')}</div>` +
+        `<div class="timeline">
+      <div class="timeline-item"><b>${b.lastEvent}</b><p>${b.sector} · just now</p></div>
+      <div class="timeline-item"><b>Route ${b.route} started</b><p>06:40 · GPS ${b.gps[0]}, ${b.gps[1]}</p></div>
+      <div class="timeline-item"><b>Pre-trip check passed</b><p>06:15 · all cameras responding</p></div>
+    </div>`+
+        `<div class="modal-note">Status: <b>${b.status.toUpperCase()}</b> · GPS ${b.gps[0]}, ${b.gps[1]}</div>` +
+        `<div class="btn-row"><button class="btn btn-primary" onclick="toast('Requesting live stream from ${b.id}…')">View live stream</button><button class="btn btn-ghost" onclick="toast('Flagged ${b.id} for maintenance check')">Flag for check</button></div>` +
+        `<div class="btn-row"><button class="btn btn-ghost" onclick="locateOnRealMap(${b.gps[0]},${b.gps[1]},'${b.id}','bus');closeModal();">📍 Locate on real-world map</button></div>`;
+    }
+
+    const fleetList = document.getElementById('fleet-list');
+    function buildFleetSidebar() {
+      fleetList.innerHTML = '';
+      let online = 0;
+      FLEET.forEach(b => {
+        if (b.status === 'online') online++;
+        const row = document.createElement('div');
+        row.className = 'fleet-row clickable';
+        row.innerHTML = `<span class="fleet-dot ${b.status}"></span>
+      <div class="fleet-info"><div class="fleet-id">${b.id}</div><div class="fleet-route">Route ${b.route} · ${b.status.charAt(0).toUpperCase() + b.status.slice(1)}</div></div>
+      <div class="fleet-batt">${b.status === 'offline' ? '—' : b.battery + '%'}</div><span class="chev">›</span>`;
+        row.addEventListener('click', () => openModal('FLEET · ' + b.id, b.id + ' — Route ' + b.route, b.sector + ' · ' + b.status.toUpperCase(), busDetailHtml(b)));
+        fleetList.appendChild(row);
+      });
+      document.getElementById('fleet-online-count').textContent = online + ' / ' + FLEET.length + ' online';
+    }
+    buildFleetSidebar();
+    setInterval(() => { FLEET.forEach(b => { if (b.status === 'online') b.battery = Math.max(20, b.battery - rand(0, 1)); }); buildFleetSidebar(); }, 9000);
+
+    /* ================= FLEET GRID (TAB) ================= */
+    const fleetGrid = document.getElementById('fleet-grid');
+    FLEET.forEach(b => {
+      const card = document.createElement('div');
+      card.className = 'fleet-card clickable';
+      card.innerHTML = `<div class="fleet-card-top"><span class="fleet-id">${b.id}</span><span class="fleet-dot ${b.status}"></span></div>
+    <div class="fleet-route">Route ${b.route} · ${b.sector}</div>
+    <div class="cam-row">${camNames.map((n, i) => `<span class="cam-dot" style="background:${b.cameras[i] ? '#12b981' : '#ef4444'}" title="${n}"></span>`).join('')}<span style="font-size:9.5px;color:var(--ink-mute);margin-left:4px;">cams</span></div>
+    <div style="margin-top:8px;font-size:10.5px;color:var(--ink-mute);">Battery ${b.status === 'offline' ? '—' : b.battery + '%'} · ${b.eventsToday} events today</div>`;
+      card.addEventListener('click', () => openModal('FLEET · ' + b.id, b.id + ' — Route ' + b.route, b.sector + ' · ' + b.status.toUpperCase(), busDetailHtml(b)));
+      fleetGrid.appendChild(card);
+    });
+
+    /* ================= ROAD INTELLIGENCE TAB ================= */
+    function sparkSvg(seedTrend) {
+      const pts = []; let v = 60;
+      for (let i = 0; i < 10; i++) { v += (seedTrend === 'down' ? -1 : seedTrend === 'up' ? 1 : 0) * rand(0, 4) + rand(-3, 3); v = Math.max(10, Math.min(95, v)); pts.push(v); }
+      const w = 64, h = 24; const step = w / (pts.length - 1);
+      const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${(i * step).toFixed(1)},${(h - (p / 100 * h)).toFixed(1)}`).join(' ');
+      const color = seedTrend === 'down' ? '#ef4444' : (seedTrend === 'up' ? '#12b981' : '#2f6fed');
+      return `<svg class="spark" viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+    }
+    function roadDetailHtml(r) {
+      const trendWord = r.trend === 'down' ? 'Deteriorating' : (r.trend === 'up' ? 'Improving' : 'Stable');
+      return statGrid([{ v: r.potholes, l: 'Potholes' }, { v: r.water, l: 'Waterlogging' }, { v: r.infra, l: 'Infra gaps' }]) +
+        `<div class="timeline">
+      <div class="timeline-item"><b>Condition score ${r.score}/100</b><p>Trend: ${trendWord} · first observed ${r.first}</p></div>
+      <div class="timeline-item"><b>${r.obs} observations logged</b><p>from ${r.buses} unique buses</p></div>
+      <div class="timeline-item"><b>Last observation: today</b><p>corroboration confidence rising</p></div>
+    </div>`+
+        `<div class="modal-note">Priority score combines defect severity, traffic exposure and recurrence — this segment ranks ${r.score < 45 ? 'in the top maintenance priority tier' : 'as lower priority'} citywide.</div>` +
+        `<div class="btn-row"><button class="btn btn-primary" onclick="toast('Maintenance ticket opened for ${r.id}')">Open maintenance ticket</button><button class="btn btn-ghost" onclick="toast('${r.id} added to watchlist')">Add to watchlist</button></div>` +
+        `<div class="btn-row"><button class="btn btn-ghost" onclick="locateOnRealMap(${r.gps[0]},${r.gps[1]},'${r.name}','road');closeModal();">📍 Locate on real-world map</button></div>`;
+    }
+    const roadList = document.getElementById('road-list');
+    ROADS.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'data-row clickable';
+      const cls = r.score < 45 ? 'bad' : (r.score < 70 ? 'warn' : 'good');
+      const arrow = r.trend === 'down' ? '▼' : (r.trend === 'up' ? '▲' : '—');
+      row.innerHTML = `<div style="flex:1;min-width:0;">
+      <b style="font-size:11.5px;">${r.name}</b>
+      <div style="font-size:10px;color:var(--ink-mute);">${r.id} · ${r.obs} obs · ${r.buses} buses</div>
+    </div>
+    ${sparkSvg(r.trend)}
+    <span class="badge ${cls}">${arrow} ${r.score}</span>`;
+      row.addEventListener('click', () => openModal('ROAD INTELLIGENCE · ' + r.id, r.name, 'Condition score ' + r.score + '/100', roadDetailHtml(r)));
+      roadList.appendChild(row);
+    });
+
+    /* ================= INCIDENTS TAB ================= */
+    function incidentDetailHtml(inc) {
+      const trustPoints = [
+        `AI confidence ${inc.confidence > 90 ? 'above 90%' : 'established at ' + inc.confidence + '%'}`,
+        `${inc.corroboration} independent bus confirmation${inc.corroboration === 1 ? '' : 's'}`,
+        'Same geographic region across observations',
+        'Repeated observation over time',
+        'Temporal consistency between reports'
+      ];
+      const woExists = workOrders[inc.id];
+      return statGrid([{ v: inc.confidence + '%', l: 'Confidence' }, { v: inc.corroboration, l: 'Buses agreeing' }, { v: inc.severity.toUpperCase(), l: 'Severity' }]) +
+        `<div class="timeline">
+      <div class="timeline-item"><b>${inc.type}</b><p>reported by ${inc.bus} · ${inc.sector}</p></div>
+      <div class="timeline-item"><b>Spatial + temporal correlation</b><p>${inc.corroboration} independent observation(s) matched to this location</p></div>
+      <div class="timeline-item"><b>Confidence established</b><p>AI confidence combined with multi-bus corroboration → ${inc.confidence}%</p></div>
+    </div>`+
+        `<div style="font-size:10.5px;font-weight:700;color:var(--ink-mute);letter-spacing:.3px;margin-top:14px;">WHY IS THIS TRUSTED?</div>` +
+        `<div class="trust-list">${trustPoints.map(t => `<div class="trust-item"><span class="tick">✓</span>${t}</div>`).join('')}</div>` +
+        `<div class="modal-note">Incident ${inc.id} · logged ${inc.time}${inc.priority ? ' · AI priority score ' + inc.priority.total : ''}. Absence of further reports does not mean the issue is resolved — it stays open until verified fixed.</div>` +
+        `<div class="btn-row"><button class="btn btn-primary" onclick="openWorkOrderById('${inc.id}')">${woExists ? 'View work order' : 'Create work order'}</button><button class="btn btn-ghost" onclick="toast('${inc.id} marked as resolved')">Mark resolved</button></div>` +
+        `<div class="btn-row"><button class="btn btn-ghost" onclick="toast('Evidence package requested for ${inc.id}')">Request evidence</button>` +
+        (inc.gps ? `<button class="btn btn-ghost" onclick="locateOnRealMap(${inc.gps[0]},${inc.gps[1]},'${inc.id}','incident');closeModal();">📍 Locate on map</button>` : '') +
+        `</div>`;
+    }
+    const incidentListEl = document.getElementById('incident-list');
+    function renderIncidents(filter) {
+      incidentListEl.innerHTML = '';
+      const items = INCIDENTS.filter(i => filter === 'all' || i.severity === filter);
+      document.getElementById('incident-count').textContent = items.length + ' shown / ' + INCIDENTS.length + ' total';
+      items.forEach(inc => {
+        const row = document.createElement('div');
+        row.className = 'data-row clickable';
+        row.innerHTML = `<div style="flex:1;min-width:0;">
+        <b style="font-size:11.5px;">${inc.type}</b><span class="sev ${inc.severity}">${inc.severity.toUpperCase()}</span>
+        <div style="font-size:10px;color:var(--ink-mute);">${inc.id} · ${inc.bus} · ${inc.sector} · ${inc.time}</div>
+      </div>
+      <span class="badge ${sevBadgeClass(inc.severity)}">${inc.confidence}%</span>`;
+        row.addEventListener('click', () => openModal('INCIDENT · ' + inc.id, inc.type, inc.sector + ' · ' + inc.time, incidentDetailHtml(inc)));
+        incidentListEl.appendChild(row);
+      });
+    }
+    renderIncidents('all');
+    document.getElementById('incident-filters').addEventListener('click', e => {
+      const chip = e.target.closest('.chip'); if (!chip) return;
+      document.querySelectorAll('#incident-filters .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active'); renderIncidents(chip.dataset.sev);
+    });
+
+    /* ================= AI PRIORITY QUEUE TAB ================= */
+    function priorityDetailHtml(inc) {
+      const p = inc.priority;
+      const rows = [
+        ['Severity', p.severity, 30], ['Traffic Impact', p.traffic, 25], ['Corroboration', p.corroboration, 20],
+        ['Recurrence', p.recurrence, 15], ['Age', p.age, 10]
+      ];
+      return `<div style="text-align:center;margin-bottom:4px;">
+      <div style="font-family:'Sora';font-size:34px;font-weight:800;color:var(--blue);">${p.total}</div>
+      <div style="font-size:10px;color:var(--ink-mute);font-weight:700;letter-spacing:.4px;">PRIORITY SCORE</div>
+    </div>
+    <div class="score-bd">
+      ${rows.map(([label, val, max]) => `<div class="score-bd-row">
+        <div class="score-bd-label">${label}</div>
+        <div class="score-bd-bar"><div class="score-bd-fill" style="width:${Math.min(100, val / max * 100)}%"></div></div>
+        <div class="score-bd-val">${val}/${max}</div>
+      </div>`).join('')}
+    </div>
+    <div class="modal-note">Score blends AI severity classification, estimated traffic exposure, multi-bus corroboration, recurrence over time and how long the issue has stayed open — every point is traceable, nothing is a black box.</div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="openModal('INCIDENT · ${inc.id}','${inc.type}','${inc.sector} · ${inc.time}',incidentDetailHtml(INCIDENTS.find(x=>x.id==='${inc.id}')))">View full incident</button>
+      ${inc.gps ? `<button class="btn btn-ghost" onclick="locateOnRealMap(${inc.gps[0]},${inc.gps[1]},'${inc.id}','incident');closeModal();">📍 Focus on map</button>` : ''}</div>`;
+    }
+    function renderPriorityQueue() {
+      const list = document.getElementById('priority-list');
+      if (!list) return;
+      list.innerHTML = '';
+      const ranked = [...INCIDENTS].sort((a, b) => b.priority.total - a.priority.total).slice(0, 10);
+      ranked.forEach((inc, i) => {
+        const row = document.createElement('div');
+        row.className = 'pq-row clickable';
+        row.innerHTML = `<div class="pq-rank">${String(i + 1).padStart(2, '0')}</div>
+      <span class="pq-dot ${inc.severity}"></span>
+      <div class="pq-body"><div class="pq-title">${inc.sector} — ${inc.type}</div>
+        <div class="pq-sub">${inc.corroboration}-bus corroboration · ${inc.confidence}% confidence · ${inc.id}</div></div>
+      <div class="pq-score-wrap"><div class="pq-score">${inc.priority.total}</div><div class="pq-score-l">PRIORITY</div></div>`;
+        row.addEventListener('click', () => openModal('AI PRIORITY · ' + inc.id, inc.sector, inc.type, priorityDetailHtml(inc)));
+        list.appendChild(row);
+      });
+    }
+    renderPriorityQueue();
+
+    /* ================= VISION AI TAB ================= */
+    const VISION_DETECTIONS = [
+      { label: 'Pothole', pct: 96.4, color: '#ef4444' }, { label: 'Road Crack', pct: 88.2, color: '#f59e0b' },
+      { label: 'Waterlogging', pct: 74.1, color: '#38bdf8' }, { label: 'Lane Damage', pct: 71.5, color: '#6d5bd0' }
+    ];
+    function renderVisionDetections() {
+      const el = document.getElementById('vision-det-list');
+      if (!el) return;
+      el.innerHTML = VISION_DETECTIONS.map(d => `<div class="vd-row">
+      <div class="vd-label">${d.label}</div>
+      <div class="vd-bar"><div class="vd-fill" style="width:${d.pct}%;background:${d.color}"></div></div>
+      <div class="vd-pct">${d.pct}%</div>
+    </div>`).join('');
+    }
+    renderVisionDetections();
+    document.querySelectorAll('#tab-vision [id^="vs-"]').forEach(() => { });
+    document.getElementById('nav-tabs').addEventListener('click', e => {
+      if (e.target.closest('[data-tab="vision"]')) {
+        ['vs-frames', 'vs-det', 'vs-high', 'vs-corr'].forEach(id => {
+          const el = document.getElementById(id);
+          const target = parseInt(el.textContent.replace(/,/g, ''), 10);
+          el.setAttribute('data-count', target); el.textContent = '0';
+        });
+        setTimeout(animateCounters, 60);
+      }
+    });
+
+    /* ================= WORK ORDER SYSTEM ================= */
+    const WO_STEPS = ['Detected', 'Verified', 'Assigned', 'Dispatched', 'Repairing', 'Completed', 'AI Verified'];
+    const workOrders = {};
+    function getWorkOrder(inc) {
+      if (!workOrders[inc.id]) workOrders[inc.id] = { step: 1, wo: 'WO-' + rand(2000, 2999) };
+      return workOrders[inc.id];
+    }
+    function workOrderHtml(inc) {
+      const wo = getWorkOrder(inc);
+      const stepsHtml = WO_STEPS.map((s, i) => {
+        const cls = i < wo.step ? 'done' : (i === wo.step ? 'current' : '');
+        return `<div class="wo-step ${cls}"><div class="wo-node">${i < wo.step ? '✓' : (i + 1)}</div>
+      <div><div class="wo-label">${s}</div>${i === wo.step ? '<div class="wo-meta">In progress…</div>' : ''}</div></div>`;
+      }).join('');
+      const isDone = wo.step >= WO_STEPS.length - 1;
+      return `<div class="modal-note">Work order <b>${wo.wo}</b> · ${inc.type} · ${inc.sector} · Priority <b>${inc.severity === 'high' ? 'URGENT' : inc.severity === 'med' ? 'HIGH' : 'NORMAL'}</b><br>Assigned department: Road Maintenance · Target response: 4 hours</div>
+    <div class="wo-stepper">${stepsHtml}</div>
+    ${isDone ? repairVerificationHtml(inc) :
+          `<div class="btn-row"><button class="btn btn-primary" onclick="advanceWorkOrder('${inc.id}')">Advance status</button>
+        <button class="btn btn-ghost" onclick="toast('Team assignment notes updated')">Assign team</button></div>`}`;
+    }
+    function openWorkOrder(inc) {
+      const wo = getWorkOrder(inc);
+      openModal('WORK ORDER · ' + wo.wo, inc.type, inc.sector, workOrderHtml(inc));
+    }
+    window.openWorkOrder = openWorkOrder;
+    function openWorkOrderById(id) {
+      const inc = INCIDENTS.find(x => x.id === id);
+      if (!inc) { toast('Incident record not found'); return; }
+      openWorkOrder(inc);
+    }
+    window.openWorkOrderById = openWorkOrderById;
+    function advanceWorkOrder(id) {
+      const inc = INCIDENTS.find(x => x.id === id);
+      if (!inc) return;
+      const wo = getWorkOrder(inc);
+      if (wo.step < WO_STEPS.length - 1) {
+        wo.step++;
+        toast(WO_STEPS[wo.step] + ' · ' + wo.wo);
+      }
+      openModal('WORK ORDER · ' + wo.wo, inc.type, inc.sector, workOrderHtml(inc));
+      if (wo.step === WO_STEPS.length - 1) setTimeout(() => animateHealthJump(), 350);
+    }
+    window.advanceWorkOrder = advanceWorkOrder;
+    function repairVerificationHtml(inc) {
+      return `<div class="ba-wrap">
+      <div class="ba-panel"><div class="ba-img before"><div class="ba-crack"></div><span class="ba-tag">BEFORE</span></div>
+        <div class="ba-cap">${inc.type} detected<br>Confidence ${inc.confidence}%</div></div>
+      <div class="ba-arrow">→</div>
+      <div class="ba-panel"><div class="ba-img after"><span class="ba-tag">AFTER</span></div>
+        <div class="ba-cap">No ${inc.type.toLowerCase()} detected<br>Verification 98.1%</div></div>
+    </div>
+    <div class="health-jump"><span class="from" id="hj-from">29</span><span class="arrow">→</span><span class="to" id="hj-to">0</span></div>
+    <div style="text-align:center;font-size:10px;color:var(--ink-mute);font-weight:700;letter-spacing:.3px;">ROAD HEALTH SCORE</div>
+    <div class="modal-note">✓ AI VERIFIED — ${getWorkOrder(inc).wo} closed. Repair confirmed via an independent post-repair camera pass, not just a status update.</div>`;
+    }
+    function animateHealthJump() {
+      const toEl = document.getElementById('hj-to');
+      if (!toEl) return;
+      const target = rand(72, 88), dur = 1200, start = performance.now();
+      function step(t) { const p = Math.min(1, (t - start) / dur); toEl.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); }
+      requestAnimationFrame(step);
+    }
+
+    /* ================= REPORTS TAB ================= */
+    const reportList = document.getElementById('report-list');
+    REPORTS.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'data-row clickable';
+      row.innerHTML = `<div style="flex:1;min-width:0;"><b style="font-size:11.5px;">${r.title}</b>
+      <div style="font-size:10px;color:var(--ink-mute);">${r.type} · ${r.date} · ${r.size}</div></div>
+    <span class="chev">›</span>`;
+      row.addEventListener('click', () => openModal('REPORT', r.title, r.date + ' · ' + r.size, `<p style="font-size:12px;color:var(--ink-soft);line-height:1.6;">${r.summary}</p><div class="btn-row"><button class="btn btn-primary" onclick="toast('Downloading ${r.title}…')">Download ${r.type}</button><button class="btn btn-ghost" onclick="toast('Report link copied')">Copy link</button></div>`));
+      reportList.appendChild(row);
+    });
+
+    /* ================= LIVE INCIDENT FEED (right panel) ================= */
+    const feed = document.getElementById('feed');
+    function feedEntry() {
+      const ev = pick(eventTypes), bus = pick(busIds), sector = pick(sectors), conf = rand(86, 98);
+      return { type: ev.t, severity: ev.s, bus, sector, confidence: conf, id: 'IN-' + rand(3000, 3999), time: 'now', corroboration: rand(1, 4) };
+    }
+    function pushFeedItem() {
+      const inc = feedEntry();
+      inc.priority = {
+        severity: inc.severity === 'high' ? rand(25, 30) : inc.severity === 'med' ? rand(15, 23) : rand(5, 14),
+        traffic: rand(13, 25), corroboration: Math.min(20, inc.corroboration * 4 + rand(0, 2)), recurrence: rand(6, 15), age: rand(4, 10)
+      };
+      inc.priority.total = inc.priority.severity + inc.priority.traffic + inc.priority.corroboration + inc.priority.recurrence + inc.priority.age;
+      INCIDENTS.push(inc);
+      const item = document.createElement('div');
+      item.className = 'feed-item clickable';
+      item.innerHTML = `<div class="feed-top"><span class="feed-type">${inc.type}<span class="sev ${inc.severity}">${inc.severity.toUpperCase()}</span></span><span class="feed-time">now</span></div>
+    <div class="feed-meta">${inc.bus} · ${inc.sector} · confidence ${inc.confidence}%</div>`;
+      item.addEventListener('click', () => openModal('LIVE EVENT · ' + inc.id, inc.type, inc.sector + ' · ' + inc.bus, incidentDetailHtml(inc)));
+      feed.prepend(item);
+      while (feed.children.length > 7) feed.removeChild(feed.lastChild);
+      Array.from(feed.children).forEach((c, i) => { if (i > 0) c.querySelector('.feed-time').textContent = (i * 2) + 'm ago'; });
+    }/* ================= NEW: MAP STYLES FOR REAL DATA ================= */
+    
+    /* ================= PYTHON WEBSOCKET (THE GOD MODE FLOW) ================= */
+    
+    // 1. Inject Custom CSS for Real Data (Buses & Neon Anomalies)
+    const customStyles = document.createElement('style');
+    customStyles.innerHTML = `
+      .real-incident .core { background: #00f0ff !important; border: 2px solid #fff; box-shadow: 0 0 15px #00f0ff; }
+      .real-incident .ring { background: #00f0ff !important; animation: markerPulse 1.2s ease-out infinite; }
+      .live-bus-marker { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); transition: transform 1s linear; }
+      .live-badge { background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: bold; animation: pulseDot 1.5s infinite; }
+    `;
+    document.head.appendChild(customStyles);
+
+    // const ws = new WebSocket(`ws://${window.location.hostname || "localhost"}:8000/ws/dashboard`);
+    // Purana: const ws = new WebSocket(`ws://${window.location.hostname || "localhost"}:8000/ws/dashboard`);
+    // Naya (Yahan apna Render URL daalna):
+      const ws = new WebSocket('wss://veeksha-cloud.onrender.com/ws/dashboard');
+    // Store real active buses moving on the map
+    const activeRealBuses = {};
+    const fleetListEl = document.getElementById('fleet-list');
+
+    // Function to open the Live Feed Modal
+    window.openLiveFeedModal = function(bus_id) {
+        const liveHtml = `
+            <div style="border-radius:12px; overflow:hidden; border:2px solid var(--blue); position:relative; background:#000;">
+                <div style="position:absolute; top:10px; left:10px; background:var(--red); color:#fff; font-size:10px; font-weight:bold; padding:4px 8px; border-radius:6px; z-index:10; display:flex; gap:6px; align-items:center;">
+                    <span style="width:6px; height:6px; background:#fff; border-radius:50%; animation:pulseDot 1s infinite;"></span> LIVE FEED
+                </div>
+                <img id="live-stream-${bus_id}" src="" style="width:100%; aspect-ratio:4/3; object-fit:cover; display:block;" alt="Waiting for feed..." />
+            </div>
+            <div class="stat-grid" style="margin-top:10px;">
+                <div class="stat-box"><b>Edge AI</b><span>Processing</span></div>
+                <div class="stat-box"><b>Active</b><span>Camera</span></div>
+            </div>
+            <div class="modal-note">Direct low-latency edge stream from ${bus_id}.</div>
+        `;
+        openModal(`LIVE EDGE NODE · ${bus_id}`, 'On-Board Camera Feed', 'Real-time telemetry', liveHtml);
+    };
+
+    ws.onmessage = (event) => {
+      const payload = JSON.parse(event.data);
+
+      // ==========================================
+      // FLOW 1: THE BUS MOVEMENT & LIVE FEED
+      // ==========================================
+      if (payload.type === 'LIVE_FEED') {
+        const [lat, lng] = payload.gps.split(",").map(Number);
+        
+        // A. Handle Map Marker
+        if (!activeRealBuses[payload.bus_id]) {
+            // First time seeing this bus: Create SVG Bus Marker
+            const busIcon = L.divIcon({
+                className: 'geo-marker-wrap',
+                html: `<div class="live-bus-marker"><svg viewBox="0 0 24 24" width="32" height="32" fill="#2f6fed"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg></div>`,
+                iconSize: [32, 32], iconAnchor: [16, 16]
+            });
+            
+            const marker = L.marker([lat, lng], {icon: busIcon});
+            if(typeof realLayerGroups !== 'undefined' && realLayerGroups.bus) marker.addTo(realLayerGroups.bus);
+            
+            // Click Map Icon -> Open Live Feed
+            marker.on('click', () => window.openLiveFeedModal(payload.bus_id));
+            activeRealBuses[payload.bus_id] = marker;
+            
+            // B. Add to Fleet Status Panel (At the top)
+            if (fleetListEl) {
+                const row = document.createElement('div');
+                row.className = 'fleet-row clickable';
+                row.id = `fleet-row-${payload.bus_id}`;
+                row.innerHTML = `
+                    <span class="fleet-dot online"></span>
+                    <div class="fleet-info">
+                        <div class="fleet-id">${payload.bus_id} <span class="live-badge">LIVE</span></div>
+                        <div class="fleet-route" id="fleet-gps-${payload.bus_id}">GPS Tracking...</div>
+                    </div>
+                    <div class="fleet-batt">Live Feed</div><span class="chev">›</span>
+                `;
+                // Click Fleet List -> Open Live Feed
+                row.addEventListener('click', () => window.openLiveFeedModal(payload.bus_id));
+                fleetListEl.prepend(row);
+            }
+            
+            toast(`Bus ${payload.bus_id} connected and is LIVE on map`);
+            if(typeof realMap !== 'undefined' && realMap) realMap.flyTo([lat, lng], 15.5, { duration: 1.5 });
+            
+        } else {
+            // Smoothly move existing bus on map
+            activeRealBuses[payload.bus_id].setLatLng([lat, lng]);
+            // Update GPS text in fleet list
+            const gpsText = document.getElementById(`fleet-gps-${payload.bus_id}`);
+            if(gpsText) gpsText.textContent = `GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+
+        // C. Feed Video Frames to Modal (If open)
+        const liveImgEl = document.getElementById(`live-stream-${payload.bus_id}`);
+        if (liveImgEl) {
+            liveImgEl.src = payload.image; 
+        }
+      }
+
+      // ==========================================
+      // FLOW 2: REAL ANOMALIES (WITH PHOTO)
+      // ==========================================
+      else if (payload.type === 'CRITICAL_ANOMALY') {
+        const inc = { 
+            id: 'IN-' + Math.floor(Math.random() * 9000), 
+            type: payload.event.toUpperCase(), 
+            severity: 'high', 
+            bus: payload.node, 
+            sector: 'Live Detect', 
+            confidence: (payload.confidence * 100).toFixed(1), 
+            image_url: payload.image_url 
+        };
+
+        // 1. Add to the Incident Feed panel
+        const item = document.createElement('div'); 
+        item.className = 'feed-item clickable';
+        item.innerHTML = `<div class="feed-top"><span class="feed-type" style="color:#00f0ff;">${inc.type}</span> <span class="live-badge">NEW</span></div><div class="feed-meta">${inc.bus} · ${inc.confidence}% Conf</div>`;
+        
+        // 2. Prepare Evidence Modal (Fixed Quotes & Image Path)
+        const modalHtml = `
+            <div class="stat-grid">
+                <div class="stat-box"><b>${inc.confidence}%</b><span>Confidence</span></div>
+                <div class="stat-box"><b style="color:var(--red)">HIGH</b><span>Severity</span></div>
+            </div>` + 
+            // FIXED: Removed the extra '/' from src and used single quotes for HTML attributes inside string
+            (inc.image_url ? `<div style='margin-top:15px; border-radius:12px; overflow:hidden; border:2px solid #00f0ff;'><div style='background:#00f0ff; color:#000; font-size:10px; font-weight:bold; padding:6px 10px;'>📸 REAL EVIDENCE CAPTURE</div><img src='${inc.image_url}' style='width:100%; display:block;' /></div>` : '') +
+            `<div class='btn-row' style='margin-top:15px;'>
+                <button class='btn btn-primary' onclick="toast('Work Order created for ${inc.type}')">Create Work Order</button>
+                <button class='btn btn-ghost' onclick="window.openLiveFeedModal('${inc.bus}')">Switch to Live Camera</button>
+            </div>`;
+
+        item.addEventListener('click', () => openModal('REAL ANOMALY', inc.type, `Detected by ${inc.bus}`, modalHtml));
+        
+        const feed = document.getElementById('feed'); 
+        if(feed) {
+            feed.prepend(item);
+            if (feed.children.length > 7) feed.removeChild(feed.lastChild);
+        }
+        
+        // 3. Play Siren
+        const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        alertSound.volume = 0.5; alertSound.play().catch(e=>console.log("Audio blocked"));
+        toast(`🚨 REAL ALERT: ${inc.type} found by ${inc.bus}!`);
+
+        // 4. Plot DISTINCT Neon Cyan Marker on Map (Fixed HTML String Crash)
+        if(typeof L !== 'undefined' && realLayerGroups && realLayerGroups.incident) {
+            
+            // SMART FIX: Saving modal data to a global variable to prevent quote escaping conflicts in onclick
+            window[`modalData_${inc.id}`] = modalHtml;
+            
+            L.marker(payload.position, { icon: geoDivIcon('real-incident') })
+             .bindPopup(popupHtml('REAL INCIDENT', inc.type, `Conf: ${inc.confidence}%`, 'View Evidence', `openModal('REAL ANOMALY', '${inc.type}', 'Detected by ${inc.bus}', window['modalData_${inc.id}'])`))
+             .addTo(realLayerGroups.incident);
+        }
+      }
+    };
+    /* ================= TICKER ================= */
+    const tickerItems = [
+      'RI-1042 corroborated by 4 buses · Sector 7', 'Coverage gap flagged · NH-24 Junction', 'Congestion score 82/100 · MG Road',
+      'Road R-104 condition trending down', 'Incident IN-2291 verified by field team', 'Fleet uptime 96.4% today',
+      '312 issues verified · 47 pending priority review'
+    ];
+    const track = document.getElementById('ticker-track');
+    track.innerHTML = tickerItems.concat(tickerItems).map(t => `<span>● ${t}</span>`).join('');
+    track.querySelectorAll('span').forEach(s => s.addEventListener('click', () => toast(s.textContent.replace('● ', ''))));
+
+    /* ================= NAV TABS + VIEW SWITCH ================= */
+    const tabs = document.querySelectorAll('.tab');
+    const dotsWrap = document.getElementById('dots');
+    const tabPanels = { map: 'tab-map', traffic: 'tab-traffic', road: 'tab-road', incidents: 'tab-incidents', priority: 'tab-priority', vision: 'tab-vision', fleet: 'tab-fleet', analytics: 'tab-analytics', reports: 'tab-reports' };
+    tabs.forEach((_, i) => { const d = document.createElement('span'); if (i === 0) d.classList.add('on'); dotsWrap.appendChild(d); });
+    function activateTab(key) {
+      Object.values(tabPanels).forEach(id => document.getElementById(id).classList.remove('active'));
+      document.getElementById(tabPanels[key]).classList.add('active');
+    }
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        Array.from(dotsWrap.children).forEach((d, j) => d.classList.toggle('on', j === i));
+        activateTab(tab.dataset.tab);
+      });
+    });
+
+    /* ================= MAP CHIPS ================= */
+    const chips = document.querySelectorAll('.chip[data-mode]');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        document.getElementById('mr-mode').textContent = chip.dataset.mode.toUpperCase();
+        if (window.setSceneMode) window.setSceneMode(chip.dataset.mode);
+      });
+    });
+
+    /* ================= CONSENSUS PANEL ================= */
+    const corrobData = [{ id: 'BUS-04', c: 91 }, { id: 'BUS-11', c: 89 }, { id: 'BUS-19', c: 94 }, { id: 'BUS-23', c: 92 }];
+    const corrobRow = document.getElementById('corrob-row');
+    corrobData.forEach(c => {
+      const chip = document.createElement('span');
+      chip.className = 'corrob-chip'; chip.textContent = c.id + ' ' + c.c + '%';
+      chip.addEventListener('click', e => { e.stopPropagation(); toast(c.id + ' observation confidence ' + c.c + '%'); });
+      corrobRow.appendChild(chip);
+    });
+    document.getElementById('gauge-panel').addEventListener('click', () => {
+      openModal('FLEET CONSENSUS', 'RI-1042 · Pothole, Sector 7', '96% combined confidence',
+        statGrid([{ v: '4', l: 'Buses' }, { v: '51m', l: 'Window' }, { v: '96%', l: 'Confidence' }]) +
+        '<div class="timeline">' +
+        corrobData.map((c, i) => `<div class="timeline-item"><b>${c.id} observed the issue</b><p>confidence ${c.c}% · ${10 + i * 14}:${(i * 7 + 12) % 60 < 10 ? '0' : ''}${(i * 7 + 12) % 60}</p></div>`).join('') +
+        '</div><div class="modal-note">Final confidence blends AI confidence, multi-bus corroboration, and temporal/spatial consistency — not a simple average.</div>');
+    });
+
+    /* ================= CHART ================= */
+    Chart.defaults.font.family = "'Manrope', sans-serif";
+    
+    // Real Ghaziabad Monsoon Data (Late July to Mid-Sept 2026)
+    const trendLabels = ['Jul 28', 'Aug 04', 'Aug 11', 'Aug 18', 'Aug 25', 'Sep 01', 'Sep 08', 'Sep 15'];
+    const trendData = [74, 68, 55, 48, 43, 41, 42, 44]; // Dip due to August rains, slight recovery in Sept
+
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: { 
+        labels: trendLabels, 
+        datasets: [{ 
+          data: trendData, 
+          borderColor: '#eea23b', // Warning Amber color for deteriorating roads
+          backgroundColor: (ctx) => { 
+            const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 150); 
+            g.addColorStop(0, 'rgba(238, 162, 59, 0.4)'); 
+            g.addColorStop(1, 'rgba(238, 162, 59, 0)'); 
+            return g; 
+          }, 
+          fill: true, 
+          tension: 0.45, // Smooth curve
+          borderWidth: 2.5,
+          pointRadius: 4, // Visible dots
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#eea23b',
+          pointBorderWidth: 2,
+          pointHoverRadius: 6
+        }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        onClick: () => openModal('ROAD CONDITION INDEX', 'Citywide Monsoon Impact', '8-week rolling average', '<p style="font-size:12px;color:var(--ink-soft);line-height:1.6;">The citywide road health index dropped significantly from 74 to 41 during the heavy August monsoon spells, primarily driven by severe waterlogging and asphalt washout on NH-9 and Loni stretches. Early September shows a marginal recovery to 44 as emergency municipal patching begins.</p>'),
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0b1b33',
+            titleFont: { family: 'JetBrains Mono', size: 10 },
+            bodyFont: { family: 'Sora', size: 12, weight: 'bold' },
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: { label: (ctx) => `Index Score: ${ctx.raw}/100` }
+          }
+        }, 
+        scales: { 
+          x: { 
+            display: true, 
+            grid: { display: false },
+            ticks: { font: { family: 'JetBrains Mono', size: 9 }, color: '#9b9fac' }
+          }, 
+          y: { 
+            display: true, 
+            grid: { color: 'rgba(15, 45, 90, 0.06)', borderDash: [4, 4] },
+            ticks: { font: { family: 'JetBrains Mono', size: 9 }, color: '#9b9fac', stepSize: 20 },
+            min: 20, max: 100
+          } 
+        } 
+      }
+    });
+    function infraChartConfig() {
+      return {
+        type: 'doughnut',
+        data: { labels: ['Present', 'Deficient', 'Unknown'], datasets: [{ data: [68, 17, 15], backgroundColor: ['#12b981', '#ef4444', '#c7d0dd'], borderWidth: 0, hoverOffset: 8 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '70%',
+          onClick: (evt, els) => {
+            if (!els.length) return; const labels = ['Present', 'Deficient', 'Unknown']; const vals = [68, 17, 15];
+            const i = els[0].index; openModal('INFRASTRUCTURE STATUS', labels[i], vals[i] + '% of monitored infrastructure',
+              '<p style="font-size:12px;color:var(--ink-soft);line-height:1.6;">' +
+              (i === 0 ? 'Evidence from repeated bus observations confirms this infrastructure exists as expected.' :
+                i === 1 ? 'Expected infrastructure is missing, damaged or degraded based on sufficient independent observation.' :
+                  'Not enough reliable observation exists yet — absence of evidence is not treated as evidence of absence.') +
+              '</p><div class="modal-note">This three-state model prevents a single missed detection from being reported as a real deficiency.</div>');
+          },
+          plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b1b33', padding: 8, cornerRadius: 8 } }
+        }
+      };
+    }
+    new Chart(document.getElementById('infraChart'), infraChartConfig());
+    new Chart(document.getElementById('infraChartBig'), infraChartConfig());
+    document.getElementById('infra-legend').querySelectorAll('div').forEach((el, i) => {
+      const map = ['Present', 'Deficient', 'Unknown']; const vals = [68, 17, 15];
+      el.addEventListener('click', () => openModal('INFRASTRUCTURE STATUS', map[i], vals[i] + '% of monitored infrastructure', '<div class="modal-note">Open the Analytics tab for the full breakdown chart.</div>'));
+    });
+
+    new Chart(document.getElementById('vehicleChart'), {
+      type: 'bar',
+      data: { labels: ['Cars', 'Bikes', 'Buses', 'Trucks'], datasets: [{ data: [142, 89, 33, 23], backgroundColor: ['#2f6fed', '#06b6d4', '#6d5bd0', '#f59e0b'], borderRadius: 8, maxBarThickness: 34 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b1b33', padding: 8, cornerRadius: 8 } },
+        scales: { x: { grid: { display: false }, ticks: { font: { size: 9.5 } } }, y: { grid: { color: 'rgba(15,45,90,.06)' }, ticks: { font: { size: 9 } } } }
+      }
+    });
+
+    const CONGESTION = [{ r: 'NH-9 Underpass', v: 88 }, { r: 'Mohan Nagar Jn', v: 76 }, { r: 'Meerut Road', v: 65 }, { r: 'Raj Nagar Ext', v: 35 }, { r: 'CISF Road', v: 52 }, { r: 'Crossings Rep', v: 42 }];
+    new Chart(document.getElementById('congestionChart'), {
+      type: 'bar',
+      data: { labels: CONGESTION.map(c => c.r), datasets: [{ data: CONGESTION.map(c => c.v), backgroundColor: CONGESTION.map(c => c.v > 70 ? '#ef4444' : c.v > 45 ? '#f59e0b' : '#12b981'), borderRadius: 8, maxBarThickness: 16 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        onClick: (evt, els) => {
+          if (!els.length) return; const c = CONGESTION[els[0].index];
+          openModal('TRAFFIC · CONGESTION', c.r, c.v + '/100 congestion score',
+            statGrid([{ v: c.v, l: 'Score' }, { v: c.v > 70 ? 'Severe' : c.v > 45 ? 'Moderate' : 'Light', l: 'State' }, { v: '08–10', l: 'Peak hrs' }]) +
+            '<div class="modal-note">Combines vehicle count, speed/motion and historical baseline for this segment.</div>');
+        },
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b1b33', padding: 8, cornerRadius: 8 } },
+        scales: { x: { grid: { color: 'rgba(15,45,90,.06)' }, ticks: { font: { size: 9 } } }, y: { grid: { display: false }, ticks: { font: { size: 9.5 } } } }
+      }
+    });
+
+    const hourly = Array.from({ length: 24 }).map((_, h) => Math.round(20 + 60 * Math.exp(-Math.pow(h - 9, 2) / 18) + 50 * Math.exp(-Math.pow(h - 18, 2) / 14) + rand(-4, 4)));
+    new Chart(document.getElementById('hourlyChart'), {
+      type: 'line',
+      data: {
+        labels: Array.from({ length: 24 }).map((_, h) => h + ':00'), datasets: [{
+          data: hourly, borderColor: '#06b6d4',
+          backgroundColor: (ctx) => { const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 150); g.addColorStop(0, 'rgba(6,182,212,.3)'); g.addColorStop(1, 'rgba(6,182,212,0)'); return g; },
+          fill: true, tension: .35, borderWidth: 2, pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b1b33', padding: 8, cornerRadius: 8 } },
+        scales: { x: { grid: { display: false }, ticks: { font: { size: 8 }, maxTicksLimit: 8 } }, y: { grid: { color: 'rgba(15,45,90,.06)' }, ticks: { font: { size: 9 } } } }
+      }
+    });
+
+    new Chart(document.getElementById('priorityChart'), {
+      type: 'bar',
+      data: { labels: ['0-20', '21-40', '41-60', '61-80', '81-100'], datasets: [{ data: [38, 64, 91, 72, 29], backgroundColor: '#6d5bd0', borderRadius: 8, maxBarThickness: 30 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b1b33', padding: 8, cornerRadius: 8 } },
+        scales: { x: { grid: { display: false }, ticks: { font: { size: 9 } } }, y: { grid: { color: 'rgba(15,45,90,.06)' }, ticks: { font: { size: 9 } } } }
+      }
+    });
+
+    new Chart(document.getElementById('confidenceChart'), {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{
+          data: [88, 90, 89, 93, 94, 95, 96], borderColor: '#12b981',
+          backgroundColor: (ctx) => { const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 150); g.addColorStop(0, 'rgba(18,185,129,.3)'); g.addColorStop(1, 'rgba(18,185,129,0)'); return g; },
+          fill: true, tension: .4, borderWidth: 2.2, pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b1b33', padding: 8, cornerRadius: 8 } },
+        scales: { x: { grid: { display: false }, ticks: { font: { size: 9 } } }, y: { grid: { color: 'rgba(15,45,90,.06)' }, ticks: { font: { size: 9 } }, min: 80, max: 100 } }
+      }
+    });
+
+    /* ================= OD MATRIX ================= */
+    const zones = ['Z1', 'Z2', 'Z3', 'Z4', 'Z5', 'Z6'];
+    const odGrid = document.getElementById('od-grid');
+    odGrid.appendChild(document.createElement('div'));
+    zones.forEach(z => { const h = document.createElement('div'); h.className = 'od-head'; h.textContent = z; odGrid.appendChild(h); });
+    zones.forEach(rowZ => {
+      const label = document.createElement('div'); label.className = 'od-head'; label.textContent = rowZ; odGrid.appendChild(label);
+      zones.forEach(colZ => {
+        const v = rowZ === colZ ? 0 : rand(4, 96);
+        const cell = document.createElement('div');
+        cell.className = 'od-cell clickable';
+        const alpha = Math.min(.92, v / 100 + .12);
+        cell.style.background = `rgba(47,111,237,${alpha})`;
+        cell.textContent = v;
+        cell.addEventListener('click', () => openModal('ORIGIN–DESTINATION', rowZ + ' → ' + colZ, v + ' trips in the last hour',
+          statGrid([{ v: v, l: 'Trips/hr' }, { v: Math.round(v * .6), l: 'By bus' }, { v: Math.round(v * 1.8) + ' min', l: 'Avg time' }]) +
+          '<div class="modal-note">OD flows are estimated from fleet GPS traces aggregated by zone.</div>'));
+        odGrid.appendChild(cell);
+      });
+    });
+
+
+    /* ================= REAL-WORLD MAP (Leaflet — real streets, real GPS) ================= */
+    let realMap = null, realMapReady = false, realMarkers = [], realLayerGroups = {}, tiltOn = false;
+    const CITY_CENTER = [28.6692, 77.4538]; // Ghaziabad, UP, India [lat, lng]
+
+    function popupHtml(eyebrow, title, sub, btnLabel, onclickJs) {
+      return `<div class="mm-popup"><div class="mm-eyebrow">${eyebrow}</div><div class="mm-title">${title}</div>
+    <div class="mm-sub">${sub}</div><button class="mm-btn" onclick="${onclickJs}">${btnLabel}</button></div>`;
+    }
+    function geoDivIcon(cls) {
+      return L.divIcon({
+        className: 'geo-marker-wrap',
+        html: `<div class="geo-marker ${cls}"><span class="ring"></span><span class="core"></span></div>`,
+        iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -14]
+      });
+    }
+
+    function initRealMap() {
+      if (realMap) return;
+      try {
+        realMap = L.map('real-map', {
+          center: CITY_CENTER, zoom: 12.4, zoomControl: true, attributionControl: true, worldCopyJump: true
+        });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(realMap);
+
+        realLayerGroups.bus = L.layerGroup().addTo(realMap);
+        realLayerGroups.incident = L.layerGroup().addTo(realMap);
+        realLayerGroups.road = L.layerGroup().addTo(realMap);
+
+        realMap.whenReady(() => {
+          realMapReady = true;
+          plotFleetOnRealMap();
+          plotIncidentsOnRealMap();
+          plotRoadsOnRealMap();
+          updateReadout();
+          setTimeout(() => realMap.invalidateSize(), 120);
+        });
+        realMap.on('moveend zoomend', updateReadout);
+      } catch (e) {
+        console.error('Real map failed to initialise', e);
+        toast('Map failed to load — check your internet connection');
+      }
+    }
+
+    // Automatically load the map on startup
+    window.addEventListener('DOMContentLoaded', initRealMap);
+
+    function updateReadout() {
+      if (!realMap) return;
+      document.getElementById('rr-zoom').textContent = realMap.getZoom().toFixed(1);
+      document.getElementById('rr-pitch').textContent = tiltOn ? 'ON' : 'OFF';
+    }
+    function addGeoMarker(group, lat, lng, cls, eyebrow, title, sub, btnLabel, onclickJs, label) {
+      const marker = L.marker([lat, lng], { icon: geoDivIcon(cls) });
+      marker.bindPopup(popupHtml(eyebrow, title, sub, btnLabel, onclickJs));
+      marker.addTo(realLayerGroups[group]);
+      realMarkers.push({ marker, group, lat, lng, label });
+    }
+    function plotFleetOnRealMap() {
+      realLayerGroups.bus.clearLayers();
+      realMarkers = realMarkers.filter(m => m.group !== 'bus');
+      FLEET.forEach(b => {
+        const lat = parseFloat(b.gps[0]), lng = parseFloat(b.gps[1]);
+        addGeoMarker('bus', lat, lng, b.status === 'online' ? 'bus' : (b.status === 'idle' ? 'idle' : 'offline'),
+          'FLEET · ' + b.status.toUpperCase(), b.id, 'Route ' + b.route + ' · ' + b.sector + ' · ' + (b.status === 'offline' ? '—' : b.battery + '% battery'),
+          'Open full details', `openModal('LIVE MAP · ${b.id}','${b.id} — Route ${b.route}','${b.sector}',busDetailHtml(FLEET.find(x=>x.id==='${b.id}')))`,
+          b.id + ' ' + b.route + ' ' + b.sector);
+      });
+      document.getElementById('rr-count').textContent = realMarkers.length;
+    }
+    function plotIncidentsOnRealMap() {
+      realLayerGroups.incident.clearLayers();
+      realMarkers = realMarkers.filter(m => m.group !== 'incident');
+      INCIDENTS.forEach(inc => {
+        if (!inc.gps) return;
+        const [lat, lng] = inc.gps;
+        addGeoMarker('incident', lat, lng, inc.severity,
+          'INCIDENT · ' + inc.id, inc.type, inc.sector + ' · ' + inc.confidence + '% confidence · ' + inc.corroboration + ' buses agree',
+          'Open full details', `openModal('INCIDENT · ${inc.id}','${inc.type}','${inc.sector}',incidentDetailHtml(INCIDENTS.find(x=>x.id==='${inc.id}')))`,
+          inc.id + ' ' + inc.type + ' ' + inc.sector);
+      });
+      document.getElementById('rr-count').textContent = realMarkers.length;
+    }
+    function plotRoadsOnRealMap() {
+      realLayerGroups.road.clearLayers();
+      realMarkers = realMarkers.filter(m => m.group !== 'road');
+      ROADS.forEach(r => {
+        const [lat, lng] = r.gps;
+        addGeoMarker('road', lat, lng, 'road',
+          'ROAD SEGMENT · ' + r.id, r.name, 'Condition score ' + r.score + '/100 · ' + r.obs + ' observations',
+          'Open full details', `openModal('ROAD INTELLIGENCE · ${r.id}','${r.name}','Condition score ${r.score}/100',roadDetailHtml(ROADS.find(x=>x.id==='${r.id}')))`,
+          r.id + ' ' + r.name);
+      });
+      document.getElementById('rr-count').textContent = realMarkers.length;
+    }
+
+    function setTilt(on) {
+      tiltOn = on;
+      const el = document.getElementById('real-map');
+      el.classList.toggle('tilted', on);
+      if (realMap) realMap.dragging[on ? 'disable' : 'enable']();
+      document.querySelector('.mchip[data-layer="tilt"]').classList.toggle('active', on);
+      updateReadout();
+    }
+
+    function locateOnRealMap(lat, lng, label, kind) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'map'));
+      const dotsWrapEl = document.getElementById('dots');
+      Array.from(dotsWrapEl.children).forEach((d, j) => d.classList.toggle('on', j === 0));
+      activateTab('map');
+      setTilt(false);
+      setTimeout(() => {
+        if (!realMap) return;
+        realMap.flyTo([lat, lng], 16.5, { duration: 1.1 });
+        const hit = realMarkers.find(m => Math.abs(m.lat - lat) < 0.0001 && Math.abs(m.lng - lng) < 0.0001);
+        if (hit) setTimeout(() => hit.marker.openPopup(), 1000);
+        toast('Centred real-world map on ' + label);
+      }, 200);
+    }
+    window.locateOnRealMap = locateOnRealMap;
+
+    /* ---- real map toolbar: layer toggles + camera actions ---- */
+    document.getElementById('map-toolbar').addEventListener('click', e => {
+      const chip = e.target.closest('.mchip'); if (!chip) return;
+      if (chip.dataset.layer === 'tilt') {
+        setTilt(!tiltOn);
+        return;
+      }
+      if (chip.dataset.layer) {
+        chip.classList.toggle('active');
+        const on = chip.classList.contains('active');
+        const groupMap = { buses: 'bus', incidents: 'incident', roads: 'road' };
+        const grp = groupMap[chip.dataset.layer];
+        if (realMap && realLayerGroups[grp]) {
+          if (on) realMap.addLayer(realLayerGroups[grp]); else realMap.removeLayer(realLayerGroups[grp]);
+        }
+      } else if (chip.dataset.action === 'topdown') {
+        setTilt(false);
+        if (realMap) realMap.flyTo(realMap.getCenter(), realMap.getZoom(), { duration: .6 });
+      } else if (chip.dataset.action === 'reset') {
+        setTilt(false);
+        if (realMap) realMap.flyTo(CITY_CENTER, 12.4, { duration: 1 });
+      }
+    });
+
+    /* ---- search buses / incidents / roads on the real map ---- */
+    document.getElementById('geo-search').addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      if (!realMap) return;
+      if (!q) { realMarkers.forEach(m => m.marker.getElement() && (m.marker.getElement().style.opacity = '1')); return; }
+      let matchCount = 0, first = null;
+      realMarkers.forEach(m => {
+        const hit = m.label.toLowerCase().includes(q);
+        const elm = m.marker.getElement();
+        if (elm) elm.style.opacity = hit ? '1' : '.12';
+        if (hit) { matchCount++; if (!first) first = m; }
+      });
+      if (first && matchCount <= 6) realMap.flyTo([first.lat, first.lng], 14.5, { duration: .9 });
+    });
+
+    /* ================= AI COPILOT ================= */
+    function copilotAnswer(q) {
+      const ql = q.toLowerCase();
+      if (ql.includes('urgent') || ql.includes('repair')) {
+        const top = [...ROADS].sort((a, b) => a.score - b.score).slice(0, 3);
+        return top.length ? `${top.length} road segments require immediate attention.\n\n` +
+          top.map((r, i) => `${i + 1}. ${r.name}\n   Health: ${r.score}/100 · ${r.potholes} potholes\n   Priority: ${r.score < 40 ? 'CRITICAL' : 'HIGH'}`).join('\n\n')
+          : 'No roads currently need urgent repair.';
+      }
+      if (ql.includes('critical') || ql.includes('today')) {
+        const top = INCIDENTS.filter(i => i.severity === 'high').slice(0, 4);
+        return top.length ? `${top.length} critical incidents flagged:\n\n` +
+          top.map(i => `• ${i.type} — ${i.sector} (${i.confidence}% confidence, ${i.corroboration} buses agreeing)`).join('\n')
+          : 'No critical (high-severity) incidents are currently open.';
+      }
+      if (ql.includes('congestion') || ql.includes('traffic')) {
+        const worst = CONGESTION.reduce((a, b) => a.v > b.v ? a : b);
+        return `Congestion is highest on ${worst.r} at ${worst.v}/100, driven mainly by peak-hour vehicle density between 08:00–10:00. It's followed by ${CONGESTION.filter(c => c.r !== worst.r).sort((a, b) => b.v - a.v)[0].r}.`;
+      }
+      if (ql.includes('offline') || ql.includes('bus') || ql.includes('fleet')) {
+        const off = FLEET.filter(b => b.status === 'offline');
+        return off.length ? `${off.length} bus(es) currently offline: ${off.map(b => b.id).join(', ')}. Likely cause: lost network or GPS signal for 5+ minutes.` : 'All buses are currently online or idle — none offline right now.';
+      }
+      if (ql.includes('summary') || ql.includes('executive')) {
+        const worst = [...ROADS].sort((a, b) => a.score - b.score)[0];
+        return `EXECUTIVE SUMMARY\n\n50 vehicles connected · ${INCIDENTS.length} incidents in register · avg detection confidence 96%.\nTop concern: ${worst.name} (health ${worst.score}/100, ${worst.potholes} potholes) — recommend urgent maintenance dispatch.`;
+      }
+      return `Right now the network shows 50 connected buses, ${INCIDENTS.length} incidents in the register, and 96% average verification confidence. Try asking about urgent repairs, today's critical incidents, congestion, offline buses, or an executive summary.`;
+    }
+    const cpFab = document.getElementById('copilot-fab'), cpDrawer = document.getElementById('copilot-drawer'), cpBody = document.getElementById('cp-body');
+    function cpAddMsg(text, who) {
+      const el = document.createElement('div'); el.className = 'cp-msg ' + who; el.textContent = text;
+      cpBody.appendChild(el); cpBody.scrollTop = cpBody.scrollHeight;
+    }
+    function cpAsk(q) {
+      cpAddMsg(q, 'user');
+      setTimeout(() => cpAddMsg(copilotAnswer(q), 'ai'), 420);
+    }
+    cpFab.addEventListener('click', () => cpDrawer.classList.toggle('open'));
+    document.getElementById('cp-close').addEventListener('click', () => cpDrawer.classList.remove('open'));
+    document.getElementById('cp-prompts').addEventListener('click', e => {
+      const p = e.target.closest('.cp-prompt'); if (!p) return;
+      cpAsk(p.dataset.q);
+    });
+    document.getElementById('cp-send').addEventListener('click', () => {
+      const input = document.getElementById('cp-input');
+      if (!input.value.trim()) return;
+      cpAsk(input.value.trim()); input.value = '';
+    });
+    document.getElementById('cp-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); document.getElementById('cp-send').click(); }
+    });
+
+    /* resize real map whenever the map tab / panel becomes visible again */
+    window.addEventListener('resize', () => { if (realMap) realMap.invalidateSize(); });
+    document.getElementById('nav-tabs').addEventListener('click', e => {
+      if (e.target.closest('[data-tab="map"]')) setTimeout(() => { if (realMap) realMap.invalidateSize(); }, 80);
+    });
+  </script>
+</body>
+
+</html>

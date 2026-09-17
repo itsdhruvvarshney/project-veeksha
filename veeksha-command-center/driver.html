@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#070a17" />
+<title>VEEKSHA — Edge Node / Driver Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* base */
+    --bg-0:#05060f; --bg-1:#0a0e22; --bg-2:#121a3d;
+    /* electric indigo — primary signal */
+    --indigo:#5b62ff; --indigo-bright:#8b8fff; --indigo-dim:rgba(91,98,255,.2);
+    /* vivid mint — "live" transmission color */
+    --mint:#21e6ac; --mint-bright:#5cf5c8; --mint-dim:rgba(33,230,172,.18);
+    /* warm gold — fleet identity / premium accent */
+    --gold:#ffb93e; --gold-soft:#ffd685; --gold-dim:rgba(255,185,62,.18);
+    --ink:#f4f6ff; --ink-soft:#c1c8ec; --ink-mute:#767ea8;
+    --glass:rgba(255,255,255,.05); --glass-strong:rgba(255,255,255,.095); --glass-border:rgba(255,255,255,.12);
+    --danger:#ff5470; --danger-soft:#ffb3bf;
+    --radius-lg:24px; --radius-md:17px; --radius-sm:12px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Inter',sans-serif; color:var(--ink);
+    background:
+      radial-gradient(1000px 620px at 12% -8%, rgba(91,98,255,.32), transparent 58%),
+      radial-gradient(760px 560px at 104% 6%, rgba(255,185,62,.16), transparent 55%),
+      radial-gradient(680px 620px at 50% 118%, rgba(33,230,172,.14), transparent 60%),
+      linear-gradient(175deg, var(--bg-0), var(--bg-1) 55%, #0d1330 100%);
+    min-height:100vh; min-height:100dvh; overflow-x:hidden; position:relative;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:rgba(91,98,255,.4);}
+
+  /* ---------- ambient grid + sheen backdrop ---------- */
+  .bg-grid{position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size:36px 36px;
+    -webkit-mask-image:radial-gradient(820px 640px at 50% 0%, #000 0%, transparent 72%);
+            mask-image:radial-gradient(820px 640px at 50% 0%, #000 0%, transparent 72%);
+  }
+  .bg-glow{position:fixed; border-radius:50%; z-index:0; pointer-events:none; filter:blur(80px);}
+  .bg-glow.g1{width:380px; height:380px; background:var(--indigo); top:-130px; left:-110px; opacity:.4;}
+  .bg-glow.g2{width:320px; height:320px; background:var(--gold); bottom:-150px; right:-100px; opacity:.22;}
+  .bg-glow.g3{width:280px; height:280px; background:var(--mint); top:42%; right:-140px; opacity:.14;}
+
+  .app{position:relative; z-index:1; max-width:460px; margin:0 auto;
+    padding:calc(22px + env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom));
+    min-height:100vh; min-height:100dvh; display:flex; flex-direction:column;}
+
+  /* ---------- brand header ---------- */
+  .brand{display:flex; align-items:center; gap:12px; margin-bottom:28px;
+    opacity:0; animation:dropIn .7s cubic-bezier(.2,.8,.2,1) .05s forwards;}
+  .brand-mark{width:42px; height:42px; border-radius:12px; flex:none; position:relative;
+    background:linear-gradient(150deg, var(--indigo-bright), var(--indigo) 65%, #3d3ef0);
+    box-shadow:0 10px 24px -8px rgba(91,98,255,.65), inset 0 1px 0 rgba(255,255,255,.35);
+    display:flex; align-items:center; justify-content:center;}
+  .brand-mark svg{width:22px; height:22px;}
+  .brand-text h1{font-family:'Fraunces',serif; font-size:20px; font-weight:600; letter-spacing:.3px; margin:0; color:var(--ink);
+    background:linear-gradient(120deg, var(--ink) 40%, var(--indigo-bright));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .brand-text p{margin:2px 0 0; font-size:11px; color:var(--ink-mute); font-weight:600; letter-spacing:.3px;}
+
+  @keyframes dropIn{to{opacity:1;}}
+  @keyframes riseIn{from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);}}
+  @keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+
+  .screen{flex:1; display:flex; flex-direction:column;}
+  .hidden{display:none !important;}
+
+  /* ================= SETUP SCREEN ================= */
+  .setup-screen{justify-content:center; align-items:stretch; padding-bottom:10px;}
+
+  .hero-graphic{width:100%; display:flex; justify-content:center; margin-bottom:10px;
+    opacity:0; animation:fadeIn 1s ease .15s forwards;}
+  .hero-graphic svg{width:190px; height:190px;}
+  .ring{fill:none; stroke:var(--indigo-bright); stroke-opacity:.4; stroke-width:1.4;}
+  .ring.r2{stroke:var(--gold); stroke-opacity:.32;}
+  .ring-pulse{transform-origin:center; animation:ringPulse 3.6s ease-in-out infinite;}
+  .ring-pulse.delay{animation-delay:1.8s;}
+  @keyframes ringPulse{0%{transform:scale(.8); opacity:1;} 70%{opacity:0;} 100%{transform:scale(1.32); opacity:0;}}
+  .node-dot{fill:var(--indigo-bright); filter:drop-shadow(0 0 10px rgba(139,143,255,.9));}
+
+  h2.title{font-family:'Fraunces',serif; font-weight:600; font-size:28px; line-height:1.18; text-align:center;
+    margin:6px 0 9px; color:var(--ink); opacity:0; animation:riseIn .6s cubic-bezier(.2,.8,.2,1) .25s forwards;}
+  p.subtitle{text-align:center; font-size:14px; line-height:1.6; color:var(--ink-mute); margin:0 auto 32px; max-width:320px;
+    opacity:0; animation:riseIn .6s cubic-bezier(.2,.8,.2,1) .35s forwards;}
+
+  form{opacity:0; animation:riseIn .6s cubic-bezier(.2,.8,.2,1) .45s forwards;}
+  .field{margin-bottom:20px;}
+  .field label{display:block; font-size:12px; font-weight:700; letter-spacing:.3px; color:var(--ink-soft); margin-bottom:9px;}
+  .field input{width:100%; padding:18px 17px; font-size:16px; font-family:'Space Mono', monospace; letter-spacing:.6px;
+    color:var(--ink); background:var(--glass); border:1.5px solid var(--glass-border); border-radius:var(--radius-md);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); outline:none;
+    transition:border-color .25s, background .25s, box-shadow .25s;}
+  .field input::placeholder{color:var(--ink-mute); opacity:.7;}
+  .field input:focus{border-color:var(--indigo-bright); background:rgba(91,98,255,.1);
+    box-shadow:0 0 0 4px rgba(91,98,255,.16);}
+
+  .btn-primary{width:100%; padding:19px 20px; font-size:15.5px; font-weight:700; font-family:'Inter',sans-serif;
+    color:#080520; background:linear-gradient(120deg, var(--indigo-bright), var(--indigo) 55%, #4145e6);
+    position:relative; overflow:hidden;
+    border:none; border-radius:var(--radius-md); cursor:pointer; letter-spacing:.2px;
+    box-shadow:0 18px 36px -14px rgba(91,98,255,.65), inset 0 1px 0 rgba(255,255,255,.4);
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    transition:transform .18s ease, box-shadow .18s ease;}
+  .btn-primary:active{transform:scale(.98); box-shadow:0 10px 22px -12px rgba(91,98,255,.55);}
+  .btn-primary svg{width:18px; height:18px; flex:none;}
+
+  .hint{text-align:center; font-size:11.5px; color:var(--ink-mute); margin-top:18px; line-height:1.55;
+    opacity:0; animation:riseIn .6s cubic-bezier(.2,.8,.2,1) .55s forwards;}
+  .hint b{color:var(--gold); font-weight:700;}
+
+  /* ================= ACTIVE SCREEN ================= */
+  .active-screen{padding-top:4px;}
+
+  .status-bar{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;
+    opacity:0; animation:riseIn .5s ease forwards;}
+  .status-chip{display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:999px;
+    background:var(--glass-strong); border:1.5px solid var(--glass-border); font-size:12px; font-weight:700;
+    font-family:'Space Mono', monospace; letter-spacing:.3px; transition:border-color .3s, background .3s;}
+  .status-chip .dot{width:7px; height:7px; border-radius:50%; background:var(--ink-mute); flex:none; transition:background .3s;}
+  .status-chip.live{background:var(--mint-dim); border-color:rgba(33,230,172,.4); color:var(--mint-bright);}
+  .status-chip.live .dot{background:var(--mint-bright); box-shadow:0 0 0 0 rgba(92,245,200,.6); animation:pulseDot 1.8s infinite;}
+  .status-chip.err{background:rgba(255,84,112,.14); border-color:rgba(255,84,112,.4); color:var(--danger-soft);}
+  .status-chip.err .dot{background:var(--danger);}
+  @keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(92,245,200,.55);}70%{box-shadow:0 0 0 8px rgba(92,245,200,0);}100%{box-shadow:0 0 0 0 rgba(92,245,200,0);}}
+  .fleet-tag{font-family:'Space Mono', monospace; font-size:12px; font-weight:700; color:var(--gold);
+    background:var(--gold-dim); border:1.5px solid rgba(255,185,62,.4); padding:8px 13px; border-radius:999px; letter-spacing:.4px;}
+
+  /* ---- camera viewport with radar/scan overlay ---- */
+  .viewport{position:relative; width:100%; aspect-ratio:3/4; border-radius:var(--radius-lg); overflow:hidden;
+    background:#04060e; border:1.5px solid var(--glass-border);
+    box-shadow:0 28px 60px -22px rgba(0,0,0,.7), 0 0 0 1px rgba(91,98,255,.08), 0 0 40px -8px rgba(91,98,255,.25);
+    opacity:0; animation:riseIn .6s cubic-bezier(.2,.8,.2,1) .1s forwards;}
+  video{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(1.12) contrast(1.05);}
+
+  .scan-overlay{position:absolute; inset:0; pointer-events:none;}
+
+  .corner{position:absolute; width:28px; height:28px; border-color:var(--gold); opacity:.9;}
+  .corner.tl{top:14px; left:14px; border-top:2.5px solid; border-left:2.5px solid; border-radius:7px 0 0 0;}
+  .corner.tr{top:14px; right:14px; border-top:2.5px solid; border-right:2.5px solid; border-radius:0 7px 0 0;}
+  .corner.bl{bottom:14px; left:14px; border-bottom:2.5px solid; border-left:2.5px solid; border-radius:0 0 0 7px;}
+  .corner.br{bottom:14px; right:14px; border-bottom:2.5px solid; border-right:2.5px solid; border-radius:0 0 7px 0;}
+
+  .scanline{position:absolute; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--mint-bright), transparent);
+    box-shadow:0 0 18px 3px rgba(92,245,200,.7);
+    animation:scanMove 3.2s cubic-bezier(.4,0,.2,1) infinite;}
+  @keyframes scanMove{0%{top:2%;} 50%{top:96%;} 100%{top:2%;}}
+
+  .radar-sweep{position:absolute; inset:0; mix-blend-mode:screen; opacity:.5;
+    background:conic-gradient(from 0deg, rgba(92,245,200,.55), transparent 28%, transparent 100%);
+    animation:sweepRotate 4s linear infinite;
+    -webkit-mask-image:radial-gradient(circle at center, #000 55%, transparent 78%);
+            mask-image:radial-gradient(circle at center, #000 55%, transparent 78%);}
+  @keyframes sweepRotate{to{transform:rotate(360deg);}}
+
+  .grid-overlay{position:absolute; inset:0; opacity:.15;
+    background-image:linear-gradient(rgba(92,245,200,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(92,245,200,.5) 1px, transparent 1px);
+    background-size:100% 12.5%, 12.5% 100%;}
+
+  .reticle-label{position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+    font-family:'Space Mono', monospace; font-size:10.5px; font-weight:700; letter-spacing:2.2px; color:var(--mint-bright);
+    background:rgba(4,6,14,.6); padding:7px 13px; border-radius:999px; border:1px solid rgba(92,245,200,.4);
+    display:flex; align-items:center; gap:7px;}
+  .reticle-label::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--danger); animation:pulseDot 1.4s infinite;}
+
+  .cam-off-msg{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px; text-align:center; padding:0 30px; color:var(--ink-mute); font-size:13px;}
+  .cam-off-msg svg{width:34px; height:34px; opacity:.55;}
+
+  /* ---- telemetry strip ---- */
+  .telemetry{display:grid; grid-template-columns:repeat(3,1fr); gap:11px; margin-top:16px;
+    opacity:0; animation:riseIn .6s cubic-bezier(.2,.8,.2,1) .2s forwards;}
+  .tele-item{background:var(--glass); border:1.5px solid var(--glass-border); border-radius:var(--radius-sm);
+    padding:13px 6px; text-align:center; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);}
+  .tele-label{display:block; font-size:9.5px; font-weight:700; letter-spacing:1px; color:var(--ink-mute); margin-bottom:5px; text-transform:uppercase;}
+  .tele-val{font-family:'Space Mono', monospace; font-size:16px; font-weight:700; color:var(--indigo-bright);}
+
+  .btn-end{width:100%; margin-top:20px; padding:18px 20px; font-size:15px; font-weight:700; font-family:'Inter',sans-serif;
+    color:#2c0710; background:linear-gradient(120deg,#ff8299, var(--danger) 60%);
+    border:none; border-radius:var(--radius-md); cursor:pointer; letter-spacing:.2px;
+    box-shadow:0 16px 30px -14px rgba(255,84,112,.6), inset 0 1px 0 rgba(255,255,255,.3);
+    display:flex; align-items:center; justify-content:center; gap:9px;
+    opacity:0; animation:riseIn .6s cubic-bezier(.2,.8,.2,1) .3s forwards; transition:transform .18s ease;}
+  .btn-end:active{transform:scale(.98);}
+  .btn-end svg{width:16px; height:16px;}
+
+  /* ---- toast ---- */
+  .toast{position:fixed; left:18px; right:18px; bottom:calc(18px + env(safe-area-inset-bottom)); z-index:20; max-width:424px; margin:0 auto;
+    background:rgba(18,10,16,.94); border:1.5px solid rgba(255,84,112,.45); color:#ffd3db; font-size:13px; line-height:1.5;
+    padding:15px 17px; border-radius:var(--radius-md); backdrop-filter:blur(16px); box-shadow:0 22px 44px -18px rgba(0,0,0,.65);
+    animation:toastIn .35s cubic-bezier(.2,.8,.2,1) forwards;}
+  @keyframes toastIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+  }
+
+  @media (min-width:520px){
+    .app{padding-top:40px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow g1"></div>
+<div class="bg-glow g2"></div>
+<div class="bg-glow g3"></div>
+
+<div class="app">
+
+  <header class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 17L10 7L14 13L20 4" stroke="#080520" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="4" r="2" fill="#080520"/></svg>
+    </div>
+    <div class="brand-text">
+      <h1>VEEKSHA</h1>
+      <p>Edge Node · Driver Portal</p>
+    </div>
+  </header>
+
+  <!-- ================= STATE 1: SETUP ================= -->
+  <section id="setupScreen" class="screen setup-screen">
+
+    <div class="hero-graphic">
+      <svg viewBox="0 0 180 180">
+        <circle class="ring" cx="90" cy="90" r="70"/>
+        <circle class="ring r2" cx="90" cy="90" r="50"/>
+        <circle class="ring ring-pulse" cx="90" cy="90" r="70"/>
+        <circle class="ring r2 ring-pulse delay" cx="90" cy="90" r="50"/>
+        <circle class="node-dot" cx="90" cy="90" r="6"/>
+      </svg>
+    </div>
+
+    <h2 class="title">Start your shift</h2>
+    <p class="subtitle">Connect this device as a live edge node for your assigned vehicle. The rear camera will stream to the VEEKSHA command center.</p>
+
+    <form id="setupForm">
+      <div class="field">
+        <label for="fleetId">Fleet ID</label>
+        <input id="fleetId" name="fleetId" type="text" placeholder="UP14-BT-0041" autocomplete="off" autocapitalize="characters" required />
+      </div>
+      <button type="submit" class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z" stroke="#080520" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.4" stroke="#080520" stroke-width="2"/></svg>
+        Start Shift & Access Camera
+      </button>
+    </form>
+
+    <p class="hint">Requires <b>rear camera</b> permission. Video frames are transmitted in real time and are not stored on this device.</p>
+  </section>
+
+  <!-- ================= STATE 2: ACTIVE TRANSMISSION ================= -->
+  <section id="activeScreen" class="screen active-screen hidden">
+
+    <div class="status-bar">
+      <div class="status-chip" id="connChip"><span class="dot"></span><span id="connText">Connecting…</span></div>
+      <div class="fleet-tag" id="fleetTag">—</div>
+    </div>
+
+    <div class="viewport">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="canvas" class="hidden"></canvas>
+
+      <div class="scan-overlay" id="scanOverlay">
+        <div class="grid-overlay"></div>
+        <div class="radar-sweep"></div>
+        <div class="scanline"></div>
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        <div class="reticle-label">TRANSMITTING</div>
+      </div>
+
+      <div class="cam-off-msg hidden" id="camOffMsg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l18 18M9 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9a2 2 0 0 0 1.7-.94M16 7h1a2 2 0 0 1 2 2v6M13 7l1.5-2h3L19 7"/></svg>
+        <span>Camera unavailable — check permissions</span>
+      </div>
+    </div>
+
+    <div class="telemetry">
+      <div class="tele-item"><span class="tele-label">FPS</span><span class="tele-val" id="fpsVal">0</span></div>
+      <div class="tele-item"><span class="tele-label">Sent</span><span class="tele-val" id="dataVal">0 KB</span></div>
+      <div class="tele-item"><span class="tele-label">Uptime</span><span class="tele-val" id="uptimeVal">00:00</span></div>
+    </div>
+
+    <button id="endShiftBtn" class="btn-end">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="5" width="14" height="14" rx="3" stroke="#2c0710" stroke-width="2.2"/></svg>
+      End Shift
+    </button>
+  </section>
+
+  <div id="errorToast" class="toast hidden"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- Config -------------------------------------------------------
+  // Backend server host:port for the video WebSocket. Defaults to the
+  // page's own host (so it works automatically when served from the
+  // same machine as the backend); override SERVER_IP if the FastAPI/
+  // Python server runs elsewhere on the fleet network.
+  var SERVER_IP = window.location.hostname || "192.168.1.100";
+  var SERVER_PORT = 8000;
+  var STREAM_FPS = 8;                 // target frames per second
+  var JPEG_QUALITY = 0.6;             // 0..1
+  var RECONNECT_DELAY_MS = 2500;
+
+  // ---- Elements -------------------------------------------------------
+  var setupScreen   = document.getElementById('setupScreen');
+  var activeScreen  = document.getElementById('activeScreen');
+  var setupForm     = document.getElementById('setupForm');
+  var fleetIdInput  = document.getElementById('fleetId');
+  var fleetTag      = document.getElementById('fleetTag');
+  var connChip      = document.getElementById('connChip');
+  var connText      = document.getElementById('connText');
+  var video         = document.getElementById('video');
+  var canvas        = document.getElementById('canvas');
+  var scanOverlay   = document.getElementById('scanOverlay');
+  var camOffMsg     = document.getElementById('camOffMsg');
+  var fpsVal        = document.getElementById('fpsVal');
+  var dataVal       = document.getElementById('dataVal');
+  var uptimeVal     = document.getElementById('uptimeVal');
+  var endShiftBtn   = document.getElementById('endShiftBtn');
+  var errorToast    = document.getElementById('errorToast');
+  var ctx           = canvas.getContext('2d');
+
+  // ---- State -------------------------------------------------------
+  var mediaStream = null;
+  var ws = null;
+  var captureTimer = null;
+  var uptimeTimer = null;
+  var reconnectTimer = null;
+  var shiftActive = false;
+  var bytesSent = 0;
+  var framesThisSecond = 0;
+  var fpsCounterTimer = null;
+  var shiftStartTime = null;
+
+  function showToast(msg){
+    errorToast.textContent = msg;
+    errorToast.classList.remove('hidden');
+    void errorToast.offsetWidth; // restart animation
+    errorToast.style.animation = 'none';
+    requestAnimationFrame(function(){ errorToast.style.animation = ''; });
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ errorToast.classList.add('hidden'); }, 4200);
+  }
+
+  function setConn(state, label){
+    connChip.classList.remove('live','err');
+    if(state) connChip.classList.add(state);
+    connText.textContent = label;
+  }
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+
+  // ---- Shift lifecycle -------------------------------------------------------
+  setupForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var id = fleetIdInput.value.trim().toUpperCase();
+    if(!id) return;
+    startShift(id);
+  });
+
+  function startShift(fleetId){
+    fleetTag.textContent = fleetId;
+    setupScreen.classList.add('hidden');
+    activeScreen.classList.remove('hidden');
+    shiftActive = true;
+    shiftStartTime = Date.now();
+    bytesSent = 0;
+    updateTelemetry();
+    startUptimeClock();
+    setConn('', 'Connecting…');
+    openCamera(fleetId);
+  }
+
+  function endShift(){
+    shiftActive = false;
+    stopCapture();
+    closeSocket();
+    stopCamera();
+    stopUptimeClock();
+
+    activeScreen.classList.add('hidden');
+    camOffMsg.classList.add('hidden');
+    scanOverlay.classList.remove('hidden');
+    setupScreen.classList.remove('hidden');
+    fleetIdInput.value = '';
+    fpsVal.textContent = '0';
+    dataVal.textContent = '0 KB';
+    uptimeVal.textContent = '00:00';
+  }
+  endShiftBtn.addEventListener('click', endShift);
+
+  // ---- Camera -------------------------------------------------------
+  function openCamera(fleetId){
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      handleCameraFailure('Camera API not supported on this browser.');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 960 } },
+      audio: false
+    }).then(function(stream){
+      mediaStream = stream;
+      video.srcObject = stream;
+      camOffMsg.classList.add('hidden');
+      scanOverlay.classList.remove('hidden');
+      video.play().catch(function(){});
+      connectSocket(fleetId);
+      video.addEventListener('loadedmetadata', function onMeta(){
+        video.removeEventListener('loadedmetadata', onMeta);
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 960;
+        startCapture();
+      });
+    }).catch(function(err){
+      handleCameraFailure('Camera access denied. Enable camera permissions in your browser settings to continue.');
+    });
+  }
+
+  function stopCamera(){
+    if(mediaStream){
+      mediaStream.getTracks().forEach(function(t){ t.stop(); });
+      mediaStream = null;
+    }
+    video.srcObject = null;
+  }
+
+  function handleCameraFailure(msg){
+    showToast(msg);
+    scanOverlay.classList.add('hidden');
+    camOffMsg.classList.remove('hidden');
+    setConn('err', 'Camera error');
+  }
+
+  // ---- WebSocket -------------------------------------------------------
+  function connectSocket(fleetId){
+    if(!shiftActive) return;
+    var url = 'ws://' + SERVER_IP + ':' + SERVER_PORT + '/ws/video?fleet=' + encodeURIComponent(fleetId);
+    try{
+      ws = new WebSocket(url);
+    }catch(e){
+      setConn('err', 'Socket error');
+      scheduleReconnect(fleetId);
+      return;
+    }
+
+    ws.onopen = function(){
+      setConn('live', 'Live · Transmitting');
+    };
+    ws.onclose = function(){
+      if(shiftActive){
+        setConn('err', 'Reconnecting…');
+        scheduleReconnect(fleetId);
+      }
+    };
+    ws.onerror = function(){
+      setConn('err', 'Connection error');
+    };
+  }
+
+  function scheduleReconnect(fleetId){
+    clearTimeout(reconnectTimer);
+    if(!shiftActive) return;
+    reconnectTimer = setTimeout(function(){
+      if(shiftActive) connectSocket(fleetId);
+    }, RECONNECT_DELAY_MS);
+  }
+
+  function closeSocket(){
+    clearTimeout(reconnectTimer);
+    if(ws){
+      try{ ws.onclose = null; ws.close(); }catch(e){}
+      ws = null;
+    }
+  }
+
+  // ---- Frame capture & transmission -------------------------------------------------------
+  function startCapture(){
+    stopCapture();
+    var interval = Math.round(1000 / STREAM_FPS);
+    captureTimer = setInterval(captureFrame, interval);
+    fpsCounterTimer = setInterval(function(){
+      fpsVal.textContent = framesThisSecond;
+      framesThisSecond = 0;
+    }, 1000);
+  }
+
+  function stopCapture(){
+    clearInterval(captureTimer);
+    clearInterval(fpsCounterTimer);
+    captureTimer = null;
+    fpsCounterTimer = null;
+  }
+
+  function captureFrame(){
+    if(!mediaStream || video.readyState < 2) return;
+    if(canvas.width === 0 || canvas.height === 0) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    var dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+    var base64 = dataUrl.split(',')[1];
+    if(!base64) return;
+
+    framesThisSecond++;
+    bytesSent += Math.round(base64.length * 0.75); // approx decoded byte size
+    updateTelemetry();
+
+    if(ws && ws.readyState === WebSocket.OPEN){
+      ws.send(base64);
+    }
+  }
+
+  function updateTelemetry(){
+    var kb = bytesSent / 1024;
+    dataVal.textContent = kb > 1024 ? (kb/1024).toFixed(2) + ' MB' : Math.round(kb) + ' KB';
+  }
+
+  // ---- Uptime clock -------------------------------------------------------
+  function startUptimeClock(){
+    stopUptimeClock();
+    uptimeTimer = setInterval(function(){
+      var secs = Math.floor((Date.now() - shiftStartTime) / 1000);
+      var m = Math.floor(secs / 60), s = secs % 60;
+      uptimeVal.textContent = pad(m) + ':' + pad(s);
+    }, 1000);
+  }
+  function stopUptimeClock(){
+    clearInterval(uptimeTimer);
+    uptimeTimer = null;
+  }
+
+  // ---- Cleanup on page hide -------------------------------------------------------
+  window.addEventListener('beforeunload', function(){
+    if(shiftActive){ stopCapture(); closeSocket(); stopCamera(); }
+  });
+
+})();
+</script>
+</body>
+</html>

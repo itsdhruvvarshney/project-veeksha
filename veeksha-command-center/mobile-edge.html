@@ -790,6 +790,9 @@ input[type=file]{display:none}
           <label class="file-button" for="videoFile">
             SELECT VIDEO
           </label>
+          <button type="button" class="file-button" id="loadDemoBtn" style="margin-top:10px; background:#2f6fed; border-color:#2f6fed; cursor:pointer;">
+            🎬 LOAD DEMO ROAD FOOTAGE
+          </button>
 
           <input
             id="videoFile"
@@ -957,9 +960,26 @@ input[type=file]{display:none}
   let frameCount = 0;
   let lastTime = performance.now();
   
-  const SERVER_IP = window.location.hostname || "localhost";
-  const SERVER_PORT = 8000;
+  const urlParams = new URLSearchParams(window.location.search);
+  const busIdFromUrl = urlParams.get('bus') || localStorage.getItem('veeksha_bus_id') || 'BUS-01';
+  localStorage.setItem('veeksha_bus_id', busIdFromUrl);
+  $("busId").textContent = busIdFromUrl;
+
   const JPEG_QUALITY = 0.5;
+
+  function getEdgeWsUrl() {
+    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const customHost = urlParams.get('server') || localStorage.getItem('veeksha_edge_server');
+    if (customHost) {
+      const cleanHost = customHost.replace(/^wss?:\/\//, '');
+      return `${wsProto}//${cleanHost}/ws/edge/${busIdFromUrl}`;
+    }
+    const host = window.location.host;
+    if (host && host.length > 0) {
+      return `${wsProto}//${host}/ws/edge/${busIdFromUrl}`;
+    }
+    return `ws://localhost:8000/ws/edge/${busIdFromUrl}`;
+  }
 
   /* ========================================================
      1. DYNAMIC GPS: 2-MINUTE SMOOTH ROUTE GENERATOR
@@ -1096,7 +1116,11 @@ input[type=file]{display:none}
      3. WEBSOCKET & REAL DATA SYNC
      ======================================================== */
   function connectEdgeSocket() {
-    try { edgeWs = new WebSocket(`ws://${SERVER_IP}:${SERVER_PORT}/ws/edge/${busId}`); } 
+    try { 
+      const wsUrl = getEdgeWsUrl(); 
+      console.log('[VEEKSHA] Connecting Edge WebSocket to:', wsUrl);
+      edgeWs = new WebSocket(wsUrl); 
+    } 
     catch(e) { return; }
 
     edgeWs.onopen = () => {
@@ -1167,6 +1191,39 @@ input[type=file]{display:none}
       }));
     }
   }, 200);
+
+  // Demo Video Loader
+  const demoBtn = $("loadDemoBtn");
+  if (demoBtn) {
+    demoBtn.addEventListener("click", () => {
+      if(objectUrl) URL.revokeObjectURL(objectUrl);
+      $("uploadedVideo").src = "demo_road.mp4";
+      $("uploadedVideo").loop = true;
+      $("uploadPanel").classList.remove("show");
+      $("uploadedVideo").play().catch(e => console.log("Video autoplay warning:", e));
+      if (typeof toast === "function") toast("Demo road footage loaded and looping!");
+    });
+  }
+
+  // Click on Bus Chip to configure ID or Server
+  const busChip = document.querySelector(".bus-chip");
+  if (busChip) {
+    busChip.style.cursor = "pointer";
+    busChip.title = "Click to configure Bus ID or Edge Server";
+    busChip.addEventListener("click", () => {
+      const currentServer = localStorage.getItem("veeksha_edge_server") || window.location.host || "localhost:8000";
+      const choice = prompt("Enter Bus ID (or type 'server:HOST' to change server, e.g. server:192.168.1.15:8000):", busIdFromUrl);
+      if (choice && choice.trim()) {
+        const val = choice.trim();
+        if (val.startsWith("server:")) {
+          localStorage.setItem("veeksha_edge_server", val.replace("server:", "").trim());
+        } else {
+          localStorage.setItem("veeksha_bus_id", val);
+        }
+        window.location.reload();
+      }
+    });
+  }
 
   // START EVERYTHING
   startCamera();

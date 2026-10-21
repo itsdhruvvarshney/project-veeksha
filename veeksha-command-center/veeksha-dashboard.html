@@ -4631,13 +4631,106 @@
     `;
     document.head.appendChild(customStyles);
 
-    // const ws = new WebSocket(`ws://${window.location.hostname || "localhost"}:8000/ws/dashboard`);
-    // Purana: const ws = new WebSocket(`ws://${window.location.hostname || "localhost"}:8000/ws/dashboard`);
-    // Naya (Yahan apna Render URL daalna):
-      const ws = new WebSocket('wss://veeksha-cloud.onrender.com/ws/dashboard');
-    // Store real active buses moving on the map
+    // Dynamic Auto-Reconnecting WebSocket Engine
+    let ws = null;
+    let wsReconnectTimeout = null;
     const activeRealBuses = {};
     const fleetListEl = document.getElementById('fleet-list');
+
+    function getDashboardWsUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const customWs = urlParams.get('ws') || localStorage.getItem('veeksha_dashboard_ws');
+      if (customWs) {
+        return customWs.startsWith('ws') ? customWs : `ws://${customWs}`;
+      }
+      const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host;
+      if (host && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port === '8000')) {
+        return `${wsProto}//${host}/ws/dashboard`;
+      }
+      return 'wss://veeksha-cloud.onrender.com/ws/dashboard';
+    }
+
+    function updateRelayPill(status, label) {
+      const livePill = document.getElementById('live-pill');
+      if (!livePill) return;
+      if (status === 'online') {
+        livePill.innerHTML = `<span class="live-dot" style="background:#22c55e; box-shadow:0 0 10px #22c55e;"></span> ${label || 'LIVE RELAY'}`;
+      } else if (status === 'connecting') {
+        livePill.innerHTML = `<span class="live-dot" style="background:#eab308; box-shadow:0 0 10px #eab308;"></span> CONNECTING...`;
+      } else {
+        livePill.innerHTML = `<span class="live-dot" style="background:#ef4444; box-shadow:0 0 10px #ef4444;"></span> OFFLINE · RETRY`;
+      }
+    }
+
+    function initWebSocketConnection() {
+      clearTimeout(wsReconnectTimeout);
+      const wsUrl = getDashboardWsUrl();
+      console.log('[VEEKSHA Command Center] Connecting to:', wsUrl);
+      updateRelayPill('connecting');
+
+      try {
+        ws = new WebSocket(wsUrl);
+      } catch (err) {
+        console.error('[VEEKSHA] Socket creation failed:', err);
+        updateRelayPill('offline');
+        wsReconnectTimeout = setTimeout(initWebSocketConnection, 3000);
+        return;
+      }
+
+      ws.onopen = () => {
+        const isLocal = wsUrl.includes('localhost') || wsUrl.includes('127.0.0.1');
+        updateRelayPill('online', isLocal ? 'LOCAL RELAY (8000)' : 'CLOUD RELAY');
+        toast(`Connected to ${isLocal ? 'Local Edge AI Engine' : 'VEEKSHA Cloud Command Network'}`);
+      };
+
+      ws.onclose = () => {
+        updateRelayPill('offline');
+        wsReconnectTimeout = setTimeout(initWebSocketConnection, 3000);
+      };
+
+      ws.onerror = (e) => {
+        console.warn('[VEEKSHA] WebSocket error, will reconnect...', e);
+      };
+
+      ws.onmessage = handleWebSocketMessage;
+    }
+
+    // Load initial SQLite database events if available
+    async function loadInitialDatabaseEvents() {
+      try {
+        const res = await fetch('/api/events?limit=15');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.events && data.events.length > 0) {
+          const feed = document.getElementById('feed');
+          data.events.forEach(ev => {
+            const item = document.createElement('div');
+            item.className = 'feed-item clickable';
+            item.innerHTML = `<div class="feed-top"><span class="feed-type" style="color:#00f0ff;">${ev.event_type.toUpperCase()}</span> <span class="live-badge" style="background:#3b82f6;">LOGGED</span></div><div class="feed-meta">${ev.bus_id} · ${(ev.confidence * 100).toFixed(0)}% Conf · ${ev.timestamp ? ev.timestamp.slice(11,19) : ''}</div>`;
+            if (feed) feed.appendChild(item);
+          });
+        }
+      } catch(e) { /* ignore if running standalone */ }
+    }
+
+    loadInitialDatabaseEvents();
+
+    // Click Live Pill to configure WebSocket endpoint
+    const pillEl = document.getElementById('live-pill');
+    if (pillEl) {
+      pillEl.style.cursor = 'pointer';
+      pillEl.title = 'Click to switch between Local Backend and Cloud Relay';
+      pillEl.addEventListener('click', () => {
+        const current = getDashboardWsUrl();
+        const choice = prompt('Enter WebSocket Relay URL:\n(e.g. ws://localhost:8000/ws/dashboard or wss://veeksha-cloud.onrender.com/ws/dashboard)', current);
+        if (choice && choice.trim()) {
+          localStorage.setItem('veeksha_dashboard_ws', choice.trim());
+          window.location.reload();
+        }
+      });
+    }
+    // Store real active buses moving on the map (already initialized)
 
     // Function to open the Live Feed Modal
     window.openLiveFeedModal = function(bus_id) {
@@ -4657,7 +4750,7 @@
         openModal(`LIVE EDGE NODE · ${bus_id}`, 'On-Board Camera Feed', 'Real-time telemetry', liveHtml);
     };
 
-    ws.onmessage = (event) => {
+    function handleWebSocketMessage(event) {
       const payload = JSON.parse(event.data);
 
       // ==========================================
@@ -4775,6 +4868,9 @@
         }
       }
     };
+    // Start WebSocket
+    initWebSocketConnection();
+
     /* ================= TICKER ================= */
     const tickerItems = [
       'RI-1042 corroborated by 4 buses · Sector 7', 'Coverage gap flagged · NH-24 Junction', 'Congestion score 82/100 · MG Road',

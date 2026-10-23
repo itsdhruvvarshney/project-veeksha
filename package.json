@@ -1,0 +1,21 @@
+{
+  "name": "project-veeksha",
+  "version": "1.0.0",
+  "description": "VEEKSHA - Mobile Urban Intelligence & Evidence Network",
+  "homepage": "https://github.com/itsdhruvvarshney/project-veeksha#readme",
+  "bugs": {
+    "url": "https://github.com/itsdhruvvarshney/project-veeksha/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itsdhruvvarshney/project-veeksha.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "start": "python run_veeksha.py",
+    "cloud": "python run_cloud.py",
+    "frontend:dev": "npm --prefix veeksha-command-center run dev",
+    "frontend:build": "npm --prefix veeksha-command-center run build",
+    "test": "python -c \"import torch, cv2, ultralytics, fastapi; print('Dependencies verified!')\""
+  }
+}
